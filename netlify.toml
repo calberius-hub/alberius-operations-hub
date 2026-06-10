@@ -1,9 +1,6 @@
 [build]
-publish = "out"
-command = "npm run build"
-
-[build.environment]
-NODE_VERSION = "18"
+publish = "."
+command = "echo 'Static site deployed'"
 
 [[redirects]]
 from = "/*"
