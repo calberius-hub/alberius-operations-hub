@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Companies — Alberius Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <span class="brand-name">Alberius Hub</span>
+    </div>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html" class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="files-records.html" class="nav-link" data-page="files">Files &amp; Records</a>
+      <a href="rosemary-accounting.html" class="nav-link" data-page="rosemary">Rosemary Accounting</a>
+      <a href="cra-accounting.html" class="nav-link" data-page="cra">CRA Accounting</a>
+      <a href="companies.html" class="nav-link active" data-page="companies">Companies</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Companies</h1>
+      <p class="lead">Entity registry, governance summaries, and compliance state.</p>
+    </section>
+
+    <section class="section" aria-labelledby="entity-registry">
+      <h2 class="section-title" id="entity-registry">Entity Registry</h2>
+      <div class="card-grid">
+        <article class="tile">
+          <div class="tile-header">
+            <span class="tile-title">Rosemary Accounting Inc</span>
+          </div>
+          <p class="tile-body">EIN 82-3492045 &bull; Washington State &bull; Active</p>
+          <a class="external-link" href="rosemary-accounting.html" data-page="rosemary">Open module</a>
+        </article>
+
+        <article class="tile">
+          <div class="tile-header">
+            <span class="tile-title">Alberius Holdings Ltd</span>
+          </div>
+          <p class="tile-body">BN 81234 5678 Rt 1 &bull; Canada &bull; In drafting</p>
+          <a class="external-link" href="cra-accounting.html" data-page="cra">Open module</a>
+        </article>
+
+        <article class="tile">
+          <div class="tile-header">
+            <span class="tile-title">SDS Ventures LLC</span>
+          </div>
+          <p class="tile-body">EIN pending &bull; Planned formation</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; <span id="year"></span> Alberius Operations Hub</span>
+    <a href="README.md" target="_blank">Docs</a>
+    <a href="deployment.md" target="_blank">Deployment</a>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

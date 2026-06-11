@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Alberius Operations Hub
 
-## Getting Started
+A lightweight, Netlify-ready operations shell built with vanilla HTML, CSS, and JS.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Depot:** `/tmp/claude-work/alberius-hub-v2`
+- **Style:** cream/sage palette unified with the rosemary finish app and `rosemary-accounting.netlify.app`
+- **Format:** static assets — zero build step, zero backend
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `index.html` — Dashboard with executive status cards and quick tiles
+- `files-records.html` — Latest reports, executive summary, issues queue
+- `rosemary-accounting.html` — Module shell with intake/routing/reports placeholder and migration note
+- `cra-accounting.html` — CRA placeholder linked from top nav
+- `companies.html` — Entity registry with live module links
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Navigation
 
-## Learn More
+All pages share a sticky top nav with:
+Dashboard · Files & Records · Rosemary Accounting · CRA Accounting · Companies
 
-To learn more about Next.js, take a look at the following resources:
+## Design System
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+CSS variables are defined in `styles.css`:
+- `--bg-body`: parchment background
+- `--text-primary`: dark green
+- `--sage-{100,300,500,700}`: accent scale
+- `--bg-glass`: translucent surface for glass tiles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `deployment.md`.

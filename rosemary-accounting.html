@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rosemary Accounting — Alberius Hub</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <span class="brand-name">Alberius Hub</span>
+    </div>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html" class="nav-link" data-page="dashboard">Dashboard</a>
+      <a href="files-records.html" class="nav-link" data-page="files">Files &amp; Records</a>
+      <a href="rosemary-accounting.html" class="nav-link active" data-page="rosemary">Rosemary Accounting</a>
+      <a href="cra-accounting.html" class="nav-link" data-page="cra">CRA Accounting</a>
+      <a href="companies.html" class="nav-link" data-page="companies">Companies</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <h1>Rosemary Accounting</h1>
+      <p class="lead">
+        Migration path from
+        <a href="https://rosemary-accounting.netlify.app" target="_blank" rel="noopener">rosemary-accounting.netlify.app</a>
+        is tracked here.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="intake">
+      <h2 class="section-title" id="intake">Intake</h2>
+      <div class="card-grid">
+        <div class="tile">
+          <p class="tile-body">
+            Inbound documents, client profile data, and structured onboarding records.
+          </p>
+          <ul class="bullet-list">
+            <li>Client intake forms</li>
+            <li>Org chart and ownership registry</li>
+            <li>Banking and payment setup checklist</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="routing">
+      <h2 class="section-title" id="routing">Routing</h2>
+      <div class="card-grid">
+        <div class="tile">
+          <p class="tile-body">
+            Sequences and automation for moving transactions, filings, and approvals to the correct system.
+          </p>
+          <ul class="bullet-list">
+            <li>Journal entry routing rules</li>
+            <li>Approval thresholds by entity</li>
+            <li>Exception queue for review</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="reports">
+      <h2 class="section-title" id="reports">Reports</h2>
+      <div class="card-grid">
+        <div class="tile">
+          <p class="tile-body">
+            Generated reports are anchored to the latest ledger schema, with historical mapping noted in the migration log.
+          </p>
+          <ul class="bullet-list">
+            <li>Trial balances by entity and period</li>
+            <li>Reconciliation exceptions report</li>
+            <li>Exportable CSV for downstream review</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section migration" aria-labelledby="migration">
+      <h2 class="section-title" id="migration">Migration Notes</h2>
+      <div class="card-grid">
+        <div class="tile migration-tile">
+          <p class="tile-body">
+            The canonical production source for Rosemary Accounting is now being served from
+            <code>rosemary-accounting.netlify.app</code>.
+            The routes below remain for dashboard integration and will mirror the upstream app during migration windows.
+          </p>
+          <a class="external-link" href="https://rosemary-accounting.netlify.app" target="_blank" rel="noopener">
+            Open rosemary-accounting.netlify.app
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; <span id="year"></span> Alberius Operations Hub</span>
+    <a href="README.md" target="_blank">Docs</a>
+    <a href="deployment.md" target="_blank">Deployment</a>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
