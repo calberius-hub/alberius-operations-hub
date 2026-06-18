@@ -3,123 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alberius Hub — Operations Center</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Alberius Hub</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: #fff;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .modules {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 320px;
+      padding: 0 24px;
+    }
+
+    .module-btn {
+      display: block;
+      width: 100%;
+      padding: 18px 24px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #f0f0f0;
+      font-size: 16px;
+      font-weight: 500;
+      text-decoration: none;
+      text-align: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .module-btn:hover {
+      background: #222;
+      border-color: #3a3a3a;
+    }
+
+    .module-btn:active {
+      background: #2a2a2a;
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <div class="brand-mark">A</div>
-      <span class="brand-name">Alberius Hub</span>
-    </div>
-    <nav class="site-nav" aria-label="Primary">
-      <a href="index.html" class="nav-link active" data-page="dashboard">Dashboard</a>
-      <a href="files-records.html" class="nav-link" data-page="files">Files &amp; Records</a>
-      <a href="https://rosemary-accounting.netlify.app" class="nav-link" data-page="rosemary">Rosemary Accounting</a>
-      <a href="cra-accounting.html" class="nav-link" data-page="cra">CRA Accounting</a>
-      <a href="companies.html" class="nav-link" data-page="companies">Companies</a>
-    </nav>
-  </header>
 
-  <main class="page" id="page-dashboard">
-    <section class="hero">
-      <h1>Operations Overview</h1>
-      <p class="lead">Unified view of Rosemary, CRA, and corporate filing health.</p>
-    </section>
+  <div class="brand">
+    <div class="brand-mark">A</div>
+    <span class="brand-name">Alberius Hub</span>
+  </div>
 
-    <section class="section executive-cards" aria-label="Executive Status">
-      <h2 class="section-title">Executive Status</h2>
-      <div class="card-grid">
-        <article class="tile status-tile" data-status="active">
-          <div class="tile-header">
-            <span class="tile-title">Rosemary</span>
-            <span class="badge active">Active</span>
-          </div>
-          <p class="tile-body">
-            ROSEMARY ACCOUNTING INC<br/>
-            WA
-          </p>
-          <div class="tile-meta">Last cycle: <span class="meta-value">2026-05-28</span></div>
-        </article>
+  <div class="modules">
+    <a href="https://rosemary-accounting.netlify.app" class="module-btn">
+      Rosemary Accounting
+    </a>
+  </div>
 
-        <article class="tile status-tile" data-status="queued">
-          <div class="tile-header">
-            <span class="tile-title">CRA</span>
-            <span class="badge queued">Queued</span>
-          </div>
-          <p class="tile-body">
-            ALBERIUS HOLDINGS LTD<br/>
-            BN 81234 5678 Rt 1 &bull; Canada
-          </p>
-          <div class="tile-meta">Next filing: <span class="meta-value">2026-07-15</span></div>
-        </article>
-
-        <article class="tile status-tile" data-status="planned">
-          <div class="tile-header">
-            <span class="tile-title">SDS</span>
-            <span class="badge planned">Planned</span>
-          </div>
-          <p class="tile-body">
-            SDS VENTURES LLC<br/>
-            Planned
-          </p>
-          <div class="tile-meta">Status: <span class="meta-value">Formation</span></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="section files-records" aria-label="Files & Records">
-      <h2 class="section-title">Files &amp; Records</h2>
-      <div class="card-grid">
-        <a href="files-records.html#latest-report" class="tile link-tile">
-          <div class="tile-icon">&#128196;</div>
-          <div class="tile-content">
-            <span class="tile-title">Latest Report</span>
-            <span class="tile-meta">Q2 2026 &mdash; updated 06/04/26</span>
-          </div>
-        </a>
-        <a href="files-records.html#executive-summary" class="tile link-tile">
-          <div class="tile-icon">&#128214;</div>
-          <div class="tile-content">
-            <span class="tile-title">Executive Summary</span>
-            <span class="tile-meta">42 pages &bull; PDF</span>
-          </div>
-        </a>
-        <a href="files-records.html#issues-queue" class="tile link-tile">
-          <div class="tile-icon">&#128203;</div>
-          <div class="tile-content">
-            <span class="tile-title">Issues Queue</span>
-            <span class="tile-meta">3 open &bull; 2 blocked</span>
-          </div>
-        </a>
-      </div>
-    </section>
-
-    <section class="section quick-links" aria-label="Module Links">
-      <h2 class="section-title">Modules</h2>
-      <div class="card-grid">
-        <a href="https://rosemary-accounting.netlify.app" class="tile module-tile">
-          <div class="tile-content">
-            <span class="tile-title">Rosemary Accounting</span>
-            <span class="tile-meta">Migration path noted</span>
-          </div>
-        </a>
-        <a href="cra-accounting.html" class="tile module-tile disabled" aria-disabled="true">
-          <div class="tile-content">
-            <span class="tile-title">CRA Accounting</span>
-            <span class="tile-meta">Placeholder</span>
-          </div>
-        </a>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <span>&copy; <span id="year"></span> Alberius Operations Hub</span>
-    <a href="README.md" target="_blank">Docs</a>
-    <a href="deployment.md" target="_blank">Deployment</a>
-  </footer>
-
-  <script src="main.js"></script>
 </body>
 </html>
