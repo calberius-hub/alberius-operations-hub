@@ -4,233 +4,259 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Alberius Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
+    :root {
+      --bg:          #f5f1ea;
+      --surface:     #faf8f3;
+      --surface2:    #f2ede3;
+      --surface3:    #ebe6db;
+      --border:      #cdcaba;
+      --text:        #1a1f1c;
+      --text-dim:    #2f3a33;
+      --text-dimmer: #5e6e63;
+      --sand:        #6d6559;
+      --gold:        #8c7342;
+      --sage:        #5a8a5e;
+      --coral:       #b24a3a;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #0f0f0f;
-      color: #f0f0f0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 48px;
+      padding: 48px 24px 80px;
     }
 
+    /* ── Brand block ── */
     .brand {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 48px;
     }
 
-    .brand-mark {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -1px;
-      color: #fff;
+    .brand-logo {
+      width: 180px;
+      height: auto;
+      display: block;
     }
 
-    .brand-name {
-      font-size: 22px;
+    .brand-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    .brand-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: -0.5px;
-      color: #fff;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
     }
 
+    /* ── Modules ── */
     .modules {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       width: 100%;
-      max-width: 320px;
-      padding: 0 24px;
+      max-width: 340px;
     }
 
     .module-btn {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       width: 100%;
-      padding: 18px 24px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      color: #f0f0f0;
-      font-size: 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
       font-weight: 500;
       text-decoration: none;
-      text-align: center;
       transition: background 0.15s, border-color 0.15s;
+      border-left: 3px solid var(--sage);
     }
 
     .module-btn:hover {
-      background: #222;
-      border-color: #3a3a3a;
+      background: var(--surface2);
+      border-color: var(--sage);
     }
 
-    .module-btn:active {
-      background: #2a2a2a;
+    .module-btn:active { background: var(--surface3); }
+
+    .module-btn .arrow {
+      font-size: 12px;
+      color: var(--text-dimmer);
     }
 
-    /* Coming-soon muted style */
+    /* ── Coming soon ── */
     .module-btn.coming-soon {
-      opacity: 0.55;
+      opacity: 0.5;
       cursor: default;
+      border-left-color: var(--border);
     }
     .module-btn.coming-soon:hover {
-      background: #1a1a1a;
-      border-color: #2a2a2a;
-    }
-    .coming-soon-badge {
-      display: inline-block;
-      margin-left: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      background: #2a2a2a;
-      color: #888;
-      border-radius: 6px;
-      padding: 2px 7px;
-      vertical-align: middle;
-      letter-spacing: .04em;
-      text-transform: uppercase;
+      background: var(--surface);
+      border-color: var(--border);
     }
 
-    /* Expandable Storage Auditor section */
+    .coming-soon-badge {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--surface3);
+      color: var(--text-dimmer);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+      margin: 20px 0 8px 4px;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    /* ── Auditor expandable ── */
     .auditor-section {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      width: 100%;
+      border-left: 3px solid var(--border);
     }
 
     .auditor-toggle {
       width: 100%;
-      padding: 18px 24px;
+      padding: 16px 20px;
       background: transparent;
       border: none;
-      color: #f0f0f0;
-      font-size: 16px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
       font-weight: 500;
-      text-align: center;
+      text-align: left;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
       transition: background 0.15s;
     }
+    .auditor-toggle:hover { background: var(--surface2); }
 
-    .auditor-toggle:hover { background: #222; }
-    .auditor-toggle:active { background: #2a2a2a; }
-
-    .auditor-toggle .chevron {
-      font-size: 12px;
+    .chevron {
+      font-size: 11px;
+      color: var(--text-dimmer);
       transition: transform 0.2s;
-      color: #555;
     }
-
-    .auditor-toggle[aria-expanded="true"] .chevron {
-      transform: rotate(180deg);
-    }
+    .auditor-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
 
     .auditor-links {
       display: none;
       flex-direction: column;
-      border-top: 1px solid #2a2a2a;
+      border-top: 1px solid var(--border);
     }
-
     .auditor-links.open { display: flex; }
 
-    .auditor-company-link {
-      display: block;
-      padding: 13px 24px 13px 36px;
-      color: #c0c0c0;
-      font-size: 14px;
-      font-weight: 400;
+    .auditor-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px 12px 28px;
+      color: var(--text-dim);
+      font-size: 13px;
       text-decoration: none;
-      border-bottom: 1px solid #1f1f1f;
-      transition: background 0.12s, color 0.12s;
+      border-bottom: 1px solid var(--surface3);
+      transition: background 0.12s;
     }
+    .auditor-link:last-child { border-bottom: none; }
+    .auditor-link:hover { background: var(--surface2); color: var(--text); }
 
-    .auditor-company-link:last-child { border-bottom: none; }
-
-    .auditor-company-link:hover {
-      background: #222;
-      color: #f0f0f0;
+    /* ── Footer ── */
+    .hub-footer {
+      margin-top: 56px;
+      font-size: 11px;
+      color: var(--border);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
   </style>
 </head>
 <body>
 
   <div class="brand">
-    <div class="brand-mark">A</div>
-    <span class="brand-name">Alberius Hub</span>
+    <img src="rosemary-logo.jpg" alt="Rosemary Villas at Chenal" class="brand-logo" />
+    <div class="brand-divider"></div>
+    <div class="brand-sub">Operations Hub</div>
   </div>
 
+  <div class="section-label">Rosemary Villas</div>
+
   <div class="modules">
-
     <a href="https://rosemary-accounting.netlify.app" class="module-btn">
-      Rosemary Accounting
+      Accounting &amp; Invoices <span class="arrow">→</span>
     </a>
-
     <a href="https://rosemary-villas-finishes.netlify.app" class="module-btn">
-      Rosemary Finishes &amp; Selections
+      Finishes &amp; Selections <span class="arrow">→</span>
     </a>
-
     <a href="https://rosemary-staff.netlify.app" class="module-btn">
-      Rosemary Staff
+      Staff Hub <span class="arrow">→</span>
     </a>
-
     <a href="https://rosemary-staff.netlify.app/dashboard.html" class="module-btn">
-      Rosemary Staff Dashboard
+      Staff Dashboard <span class="arrow">→</span>
     </a>
+  </div>
 
+  <div class="section-label">Tools</div>
+
+  <div class="modules">
     <!-- SDS Ops — coming soon -->
-    <a href="#sds-ops" class="module-btn coming-soon" onclick="return false;">
+    <a href="#" class="module-btn coming-soon" onclick="return false;">
       SDS Ops <span class="coming-soon-badge">Coming Soon</span>
     </a>
 
-    <!-- Storage Auditor — expandable per-company links -->
+    <!-- Storage Auditor -->
     <div class="auditor-section">
-      <button
-        class="auditor-toggle"
-        aria-expanded="false"
-        onclick="toggleAuditor(this)"
-      >
-        <span>📊 Storage Auditor</span>
+      <button class="auditor-toggle" aria-expanded="false" onclick="toggleAuditor(this)">
+        <span>Storage Auditor</span>
         <span class="chevron">▼</span>
       </button>
       <div class="auditor-links" id="auditor-links">
-        <a href="http://localhost:3001/dashboard?company=CRA%20Construction" class="auditor-company-link">
-          🏗️ CRA Construction
-        </a>
-        <a href="http://localhost:3001/dashboard?company=Rosemary%20Villas" class="auditor-company-link">
-          🏡 Rosemary Villas
-        </a>
-        <a href="http://localhost:3001/dashboard?company=Site%20Development%20Services%20(SDS)" class="auditor-company-link">
-          🛣️ Site Development Services (SDS)
-        </a>
-        <a href="http://localhost:3001/dashboard?company=Cypress%20Bend" class="auditor-company-link">
-          🌿 Cypress Bend
-        </a>
-        <a href="http://localhost:3001/dashboard?company=Versailles%20Holdings" class="auditor-company-link">
-          🏛️ Versailles Holdings
-        </a>
-        <a href="http://localhost:3001/dashboard" class="auditor-company-link" style="color:#666; font-size:13px;">
-          ⊕ All Companies
-        </a>
+        <a href="http://localhost:3001/dashboard?company=CRA%20Construction" class="auditor-link">🏗️ CRA Construction <span class="arrow">→</span></a>
+        <a href="http://localhost:3001/dashboard?company=Rosemary%20Villas" class="auditor-link">🏡 Rosemary Villas <span class="arrow">→</span></a>
+        <a href="http://localhost:3001/dashboard?company=Site%20Development%20Services%20(SDS)" class="auditor-link">🛣️ Site Development Services <span class="arrow">→</span></a>
+        <a href="http://localhost:3001/dashboard?company=Cypress%20Bend" class="auditor-link">🌿 Cypress Bend <span class="arrow">→</span></a>
+        <a href="http://localhost:3001/dashboard?company=Versailles%20Holdings" class="auditor-link">🏛️ Versailles Holdings <span class="arrow">→</span></a>
+        <a href="http://localhost:3001/dashboard" class="auditor-link" style="color:var(--text-dimmer);font-size:12px">⊕ All Companies <span class="arrow">→</span></a>
       </div>
     </div>
-
   </div>
+
+  <div class="hub-footer">Alberius Operations · Internal</div>
 
   <script>
     function toggleAuditor(btn) {
