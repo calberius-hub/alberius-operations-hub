@@ -80,6 +80,92 @@
     .module-btn:active {
       background: #2a2a2a;
     }
+
+    /* Coming-soon muted style */
+    .module-btn.coming-soon {
+      opacity: 0.55;
+      cursor: default;
+    }
+    .module-btn.coming-soon:hover {
+      background: #1a1a1a;
+      border-color: #2a2a2a;
+    }
+    .coming-soon-badge {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #2a2a2a;
+      color: #888;
+      border-radius: 6px;
+      padding: 2px 7px;
+      vertical-align: middle;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* Expandable Storage Auditor section */
+    .auditor-section {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .auditor-toggle {
+      width: 100%;
+      padding: 18px 24px;
+      background: transparent;
+      border: none;
+      color: #f0f0f0;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.15s;
+    }
+
+    .auditor-toggle:hover { background: #222; }
+    .auditor-toggle:active { background: #2a2a2a; }
+
+    .auditor-toggle .chevron {
+      font-size: 12px;
+      transition: transform 0.2s;
+      color: #555;
+    }
+
+    .auditor-toggle[aria-expanded="true"] .chevron {
+      transform: rotate(180deg);
+    }
+
+    .auditor-links {
+      display: none;
+      flex-direction: column;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .auditor-links.open { display: flex; }
+
+    .auditor-company-link {
+      display: block;
+      padding: 13px 24px 13px 36px;
+      color: #c0c0c0;
+      font-size: 14px;
+      font-weight: 400;
+      text-decoration: none;
+      border-bottom: 1px solid #1f1f1f;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .auditor-company-link:last-child { border-bottom: none; }
+
+    .auditor-company-link:hover {
+      background: #222;
+      color: #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -90,16 +176,61 @@
   </div>
 
   <div class="modules">
+
     <a href="https://rosemary-accounting.netlify.app" class="module-btn">
       Rosemary Accounting
     </a>
+
     <a href="https://rosemary-villas-finishes.netlify.app" class="module-btn">
       Rosemary Finishes &amp; Selections
     </a>
-    <a href="http://localhost:3001/dashboard" class="module-btn" id="storage-btn">
-      📊 Storage Auditor
+
+    <!-- SDS Ops — coming soon -->
+    <a href="#sds-ops" class="module-btn coming-soon" onclick="return false;">
+      SDS Ops <span class="coming-soon-badge">Coming Soon</span>
     </a>
+
+    <!-- Storage Auditor — expandable per-company links -->
+    <div class="auditor-section">
+      <button
+        class="auditor-toggle"
+        aria-expanded="false"
+        onclick="toggleAuditor(this)"
+      >
+        <span>📊 Storage Auditor</span>
+        <span class="chevron">▼</span>
+      </button>
+      <div class="auditor-links" id="auditor-links">
+        <a href="http://localhost:3001/dashboard?company=CRA%20Construction" class="auditor-company-link">
+          🏗️ CRA Construction
+        </a>
+        <a href="http://localhost:3001/dashboard?company=Rosemary%20Villas" class="auditor-company-link">
+          🏡 Rosemary Villas
+        </a>
+        <a href="http://localhost:3001/dashboard?company=Site%20Development%20Services%20(SDS)" class="auditor-company-link">
+          🛣️ Site Development Services (SDS)
+        </a>
+        <a href="http://localhost:3001/dashboard?company=Cypress%20Bend" class="auditor-company-link">
+          🌿 Cypress Bend
+        </a>
+        <a href="http://localhost:3001/dashboard?company=Versailles%20Holdings" class="auditor-company-link">
+          🏛️ Versailles Holdings
+        </a>
+        <a href="http://localhost:3001/dashboard" class="auditor-company-link" style="color:#666; font-size:13px;">
+          ⊕ All Companies
+        </a>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    function toggleAuditor(btn) {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      document.getElementById('auditor-links').classList.toggle('open', !expanded);
+    }
+  </script>
 
 </body>
 </html>
