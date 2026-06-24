@@ -115,6 +115,13 @@
     }
     #logout-btn:hover { color: var(--coral); }
 
+    #chgpwd-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-dimmer); font-size: 11px; padding: 4px 10px;
+      cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    #chgpwd-btn:hover { border-color: var(--sage); color: var(--sage); }
+
     /* ── Modules ── */
     .modules {
       display: flex;
@@ -460,6 +467,20 @@
         <span id="user-badge-name" class="user-name"></span>
         <span id="user-badge-role" class="user-role-badge"></span>
         <button id="logout-btn" onclick="logout()" title="Sign out">Sign out</button>
+        <button id="chgpwd-btn" onclick="showChangePwd()" title="Change password">Change Password</button>
+      </div>
+
+      <!-- ── Change Password Modal ── -->
+      <div id="chgpwd-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:100%;max-width:340px;margin:24px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--text);margin-bottom:20px;text-align:center;">Change Password</div>
+          <input id="chgpwd-current" type="password" placeholder="Current password" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:10px;outline:none;" />
+          <input id="chgpwd-new" type="password" placeholder="New password" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:10px;outline:none;" />
+          <input id="chgpwd-confirm" type="password" placeholder="Confirm new password" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:14px;outline:none;" />
+          <div id="chgpwd-error" style="display:none;color:#b24a3a;font-size:12px;margin-bottom:10px;text-align:center;"></div>
+          <button id="chgpwd-submit" onclick="submitChangePwd()" style="width:100%;padding:13px;background:var(--sage);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;">Update Password</button>
+          <button onclick="hideChangePwd()" style="width:100%;padding:10px;background:none;color:var(--text-dimmer);border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;">Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -614,6 +635,11 @@
       // Reset user badge
       document.getElementById('user-badge').style.display = 'none';
 
+      // Reset login button state (fix: stuck "Signing in…" after logout)
+      var btn = document.getElementById('login-btn');
+      btn.disabled    = false;
+      btn.textContent = 'Sign In';
+
       // Show login overlay
       document.getElementById('main-content').style.display  = 'none';
       document.getElementById('login-overlay').style.display = 'flex';
@@ -707,6 +733,74 @@
       btn.setAttribute('aria-expanded', String(!expanded));
       document.getElementById('auditor-links').classList.toggle('open', !expanded);
     }
+
+    /* ── Change Password ── */
+    function showChangePwd() {
+      document.getElementById('chgpwd-current').value = '';
+      document.getElementById('chgpwd-new').value     = '';
+      document.getElementById('chgpwd-confirm').value = '';
+      document.getElementById('chgpwd-error').style.display = 'none';
+      const submit = document.getElementById('chgpwd-submit');
+      submit.disabled    = false;
+      submit.textContent = 'Update Password';
+      const overlay = document.getElementById('chgpwd-overlay');
+      overlay.style.display = 'flex';
+      setTimeout(() => document.getElementById('chgpwd-current').focus(), 50);
+    }
+
+    function hideChangePwd() {
+      document.getElementById('chgpwd-overlay').style.display = 'none';
+    }
+
+    function submitChangePwd() {
+      const currentPwd = document.getElementById('chgpwd-current').value.trim();
+      const newPwd     = document.getElementById('chgpwd-new').value.trim();
+      const confirmPwd = document.getElementById('chgpwd-confirm').value.trim();
+      const errEl      = document.getElementById('chgpwd-error');
+      const submit     = document.getElementById('chgpwd-submit');
+
+      function showErr(msg) {
+        errEl.textContent   = msg;
+        errEl.style.display = 'block';
+      }
+
+      if (!currentPwd || !newPwd || !confirmPwd) return showErr('All fields are required.');
+      if (newPwd.length < 4) return showErr('New password must be at least 4 characters.');
+      if (newPwd !== confirmPwd) return showErr('New passwords do not match.');
+
+      const session  = JSON.parse(sessionStorage.getItem('rv_session') || '{}');
+      const username = session.username || session.name;
+      if (!username) return showErr('Session expired. Please sign in again.');
+
+      submit.disabled    = true;
+      submit.textContent = 'Updating…';
+      errEl.style.display = 'none';
+
+      fetch(AUTH_URL + '?action=changePassword&username=' + encodeURIComponent(username)
+            + '&currentPassword=' + encodeURIComponent(currentPwd)
+            + '&newPassword=' + encodeURIComponent(newPwd))
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            hideChangePwd();
+            alert('Password updated successfully.');
+          } else {
+            showErr(data.error || 'Failed to update password.');
+            submit.disabled    = false;
+            submit.textContent = 'Update Password';
+          }
+        })
+        .catch(() => {
+          showErr('Network error. Please try again.');
+          submit.disabled    = false;
+          submit.textContent = 'Update Password';
+        });
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('chgpwd-overlay').addEventListener('click', function(e) {
+      if (e.target === this) hideChangePwd();
+    });
   </script>
 
 </body>
