@@ -262,6 +262,29 @@
     }
     .login-input:focus { border-color: var(--sage); }
     .login-input::placeholder { color: var(--text-dimmer); }
+    .login-select-wrap {
+      position: relative;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .login-select-wrap select.login-input {
+      appearance: none;
+      -webkit-appearance: none;
+      margin-bottom: 0;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    .login-select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-dimmer);
+      font-size: 14px;
+      line-height: 1;
+    }
 
     .login-btn {
       width: 100%;
@@ -306,7 +329,20 @@
     <div class="login-card">
       <img src="rosemary-logo.jpg" alt="Rosemary Villas" class="login-logo" />
       <div class="login-hub-label">Operations Hub</div>
-      <input id="login-name" class="login-input" type="text" placeholder="Your name" autocomplete="username" />
+      <div class="login-select-wrap">
+        <select id="login-name" class="login-input">
+          <option value="">Select your name…</option>
+          <option value="Cole">Cole</option>
+          <option value="Randy">Randy</option>
+          <option value="Josh">Josh</option>
+          <option value="Nate">Nate</option>
+          <option value="Lisa">Lisa</option>
+          <option value="Austin">Austin</option>
+          <option value="Jaimie">Jaimie</option>
+          <option value="Lindsey">Lindsey</option>
+          <option value="Nathan">Nathan</option>
+        </select>
+      </div>
       <input id="login-password" class="login-input" type="password" placeholder="Password" autocomplete="current-password" />
       <button class="login-btn" onclick="submitLogin()">Sign In</button>
       <div id="login-error" class="login-error"></div>
