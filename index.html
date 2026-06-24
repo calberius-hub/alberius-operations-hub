@@ -204,9 +204,117 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
+
+    /* ── Login overlay ── */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 36px 36px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .login-logo {
+      width: 160px;
+      height: auto;
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    .login-hub-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+      margin-bottom: 32px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 10px;
+    }
+    .login-input:focus { border-color: var(--sage); }
+    .login-input::placeholder { color: var(--text-dimmer); }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      background: var(--sage);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .login-btn:hover { opacity: 0.88; }
+    .login-btn:active { opacity: 0.75; }
+
+    .login-error {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: #b24a3a;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+      width: 100%;
+    }
+
+    /* ── Main content wrapper ── */
+    #main-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
+
+  <!-- ── Login overlay ── -->
+  <div id="login-overlay">
+    <div class="login-card">
+      <img src="rosemary-logo.jpg" alt="Rosemary Villas" class="login-logo" />
+      <div class="login-hub-label">Operations Hub</div>
+      <input id="login-name" class="login-input" type="text" placeholder="Your name" autocomplete="username" />
+      <input id="login-password" class="login-input" type="password" placeholder="Password" autocomplete="current-password" />
+      <button class="login-btn" onclick="submitLogin()">Sign In</button>
+      <div id="login-error" class="login-error"></div>
+    </div>
+  </div>
+
+  <!-- ── Main content (hidden until authenticated) ── -->
+  <div id="main-content" style="display:none">
 
   <div class="brand">
     <img src="rosemary-logo.jpg" alt="Rosemary Villas at Chenal" class="brand-logo" />
@@ -258,7 +366,63 @@
 
   <div class="hub-footer">Alberius Operations · Internal</div>
 
+  </div><!-- /#main-content -->
+
   <script>
+    /* ── Auth ── */
+    const AUTH_URL = 'https://script.google.com/macros/s/AKfycbx2dAQwXeR-wnCpY1jlFzwkWtUF9OGNGzB4Y2nDn3jGfGxksVOuxh18--BIgrZ9umkz/exec';
+
+    function showMain() {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('main-content').style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const stored = sessionStorage.getItem('rv_session');
+      if (stored) {
+        try {
+          const session = JSON.parse(stored);
+          if (session && session.name && session.role) { showMain(); return; }
+        } catch (e) {}
+      }
+
+      // Wire Enter key on password field
+      document.getElementById('login-password').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') submitLogin();
+      });
+    });
+
+    async function submitLogin() {
+      const username = document.getElementById('login-name').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorEl = document.getElementById('login-error');
+      errorEl.style.display = 'none';
+      errorEl.textContent = '';
+
+      if (!username || !password) {
+        errorEl.textContent = 'Please enter your name and password.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      const url = AUTH_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success && data.user) {
+          sessionStorage.setItem('rv_session', JSON.stringify({ name: data.user.name, role: data.user.role }));
+          showMain();
+        } else {
+          errorEl.textContent = data.error || 'Invalid credentials. Please try again.';
+          errorEl.style.display = 'block';
+        }
+      } catch (err) {
+        errorEl.textContent = 'Connection error. Please try again.';
+        errorEl.style.display = 'block';
+      }
+    }
+
+    /* ── Storage Auditor toggle ── */
     function toggleAuditor(btn) {
       const expanded = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!expanded));
