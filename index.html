@@ -66,6 +66,55 @@
       color: var(--text-dimmer);
     }
 
+    /* ── Signed-in user badge ── */
+    #user-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      padding: 5px 12px 5px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    #user-badge .user-name {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+
+    .user-role-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--sage);
+      color: #fff;
+    }
+
+    .user-role-badge.role-staff {
+      background: var(--gold);
+    }
+
+    #logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dimmer);
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+      margin-left: 2px;
+    }
+    #logout-btn:hover { color: var(--coral); }
+
     /* ── Modules ── */
     .modules {
       display: flex;
@@ -196,6 +245,53 @@
     .auditor-link:last-child { border-bottom: none; }
     .auditor-link:hover { background: var(--surface2); color: var(--text); }
 
+    /* ── Admin-locked tile state (Staff view) ── */
+    /* Applied to the tile element itself */
+    .admin-locked {
+      opacity: 0.42;
+      pointer-events: none !important;
+      border-left-color: var(--border) !important;
+    }
+
+    /* Wrapper: captures pointer events, shows tooltip when locked */
+    .tile-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    /* Tooltip — only visible when wrapper has .is-locked */
+    .tile-wrap.is-locked {
+      cursor: not-allowed;
+    }
+
+    .tile-wrap.is-locked::after {
+      content: 'Admin access required';
+      position: absolute;
+      bottom: calc(100% + 7px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 50;
+    }
+    .tile-wrap.is-locked:hover::after { opacity: 1; }
+
+    /* Lock icon inside tiles */
+    .lock-icon {
+      display: none;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
     /* ── Footer ── */
     .hub-footer {
       margin-top: 56px;
@@ -262,6 +358,7 @@
     }
     .login-input:focus { border-color: var(--sage); }
     .login-input::placeholder { color: var(--text-dimmer); }
+
     .login-select-wrap {
       position: relative;
       width: 100%;
@@ -302,6 +399,7 @@
     }
     .login-btn:hover { opacity: 0.88; }
     .login-btn:active { opacity: 0.75; }
+    .login-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
     .login-error {
       font-family: 'DM Sans', sans-serif;
@@ -344,7 +442,7 @@
         </select>
       </div>
       <input id="login-password" class="login-input" type="password" placeholder="Password" autocomplete="current-password" />
-      <button class="login-btn" onclick="submitLogin()">Sign In</button>
+      <button id="login-submit-btn" class="login-btn" onclick="submitLogin()">Sign In</button>
       <div id="login-error" class="login-error"></div>
     </div>
   </div>
@@ -352,113 +450,258 @@
   <!-- ── Main content (hidden until authenticated) ── -->
   <div id="main-content" style="display:none">
 
-  <div class="brand">
-    <img src="rosemary-logo.jpg" alt="Rosemary Villas at Chenal" class="brand-logo" />
-    <div class="brand-divider"></div>
-    <div class="brand-sub">Operations Hub</div>
-  </div>
+    <div class="brand">
+      <img src="rosemary-logo.jpg" alt="Rosemary Villas at Chenal" class="brand-logo" />
+      <div class="brand-divider"></div>
+      <div class="brand-sub">Operations Hub</div>
 
-  <div class="section-label">Rosemary Villas</div>
-
-  <div class="modules">
-    <a href="https://rosemary-accounting.netlify.app" class="module-btn">
-      Accounting &amp; Invoices <span class="arrow">→</span>
-    </a>
-    <a href="https://rosemary-villas-finishes.netlify.app" class="module-btn">
-      Finishes &amp; Selections <span class="arrow">→</span>
-    </a>
-    <a href="https://rosemary-staff.netlify.app" class="module-btn">
-      Staff Hub <span class="arrow">→</span>
-    </a>
-    <a href="https://rosemary-staff.netlify.app/dashboard.html" class="module-btn">
-      Staff Dashboard <span class="arrow">→</span>
-    </a>
-  </div>
-
-  <div class="section-label">Tools</div>
-
-  <div class="modules">
-    <!-- SDS Ops — coming soon -->
-    <a href="#" class="module-btn coming-soon" onclick="return false;">
-      SDS Ops <span class="coming-soon-badge">Coming Soon</span>
-    </a>
-
-    <!-- Storage Auditor -->
-    <div class="auditor-section">
-      <button class="auditor-toggle" aria-expanded="false" onclick="toggleAuditor(this)">
-        <span>Storage Auditor</span>
-        <span class="chevron">▼</span>
-      </button>
-      <div class="auditor-links" id="auditor-links">
-        <a href="http://localhost:3001/dashboard?company=CRA%20Construction" class="auditor-link">🏗️ CRA Construction <span class="arrow">→</span></a>
-        <a href="http://localhost:3001/dashboard?company=Rosemary%20Villas" class="auditor-link">🏡 Rosemary Villas <span class="arrow">→</span></a>
-        <a href="http://localhost:3001/dashboard?company=Site%20Development%20Services%20(SDS)" class="auditor-link">🛣️ Site Development Services <span class="arrow">→</span></a>
-        <a href="http://localhost:3001/dashboard?company=Cypress%20Bend" class="auditor-link">🌿 Cypress Bend <span class="arrow">→</span></a>
-        <a href="http://localhost:3001/dashboard?company=Versailles%20Holdings" class="auditor-link">🏛️ Versailles Holdings <span class="arrow">→</span></a>
-        <a href="http://localhost:3001/dashboard" class="auditor-link" style="color:var(--text-dimmer);font-size:12px">⊕ All Companies <span class="arrow">→</span></a>
+      <!-- Signed-in user display -->
+      <div id="user-badge">
+        <span id="user-badge-name" class="user-name"></span>
+        <span id="user-badge-role" class="user-role-badge"></span>
+        <button id="logout-btn" onclick="logout()" title="Sign out">Sign out</button>
       </div>
     </div>
-  </div>
 
-  <div class="hub-footer">Alberius Operations · Internal</div>
+    <div class="section-label">Rosemary Villas</div>
+
+    <div class="modules">
+
+      <!-- ADMIN-ONLY: Accounting -->
+      <div class="tile-wrap" id="wrap-accounting">
+        <a id="tile-accounting" href="https://rosemary-accounting.netlify.app" class="module-btn">
+          <span>Accounting &amp; Invoices</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-accounting">🔒</span>
+            <span class="arrow">→</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- Staff-accessible: Finishes -->
+      <a href="https://rosemary-villas-finishes.netlify.app" class="module-btn">
+        Finishes &amp; Selections <span class="arrow">→</span>
+      </a>
+
+      <!-- Staff-accessible: Staff Hub (employee) -->
+      <a href="https://rosemary-staff.netlify.app" class="module-btn">
+        Staff Hub <span class="arrow">→</span>
+      </a>
+
+      <!-- ADMIN-ONLY: Staff Dashboard -->
+      <div class="tile-wrap" id="wrap-dashboard">
+        <a id="tile-dashboard" href="https://rosemary-staff.netlify.app/dashboard.html" class="module-btn">
+          <span>Staff Dashboard</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-dashboard">🔒</span>
+            <span class="arrow">→</span>
+          </span>
+        </a>
+      </div>
+
+    </div>
+
+    <div class="section-label">Tools</div>
+
+    <div class="modules">
+
+      <!-- ADMIN-ONLY: SDS Ops — coming soon -->
+      <div class="tile-wrap" id="wrap-sds">
+        <a id="tile-sds" href="#" class="module-btn coming-soon" onclick="return false;">
+          <span>SDS Ops</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-sds">🔒</span>
+            <span class="coming-soon-badge">Coming Soon</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- ADMIN-ONLY: Storage Auditor -->
+      <div class="tile-wrap" id="wrap-auditor">
+        <div id="tile-auditor" class="auditor-section">
+          <button class="auditor-toggle" aria-expanded="false" onclick="toggleAuditor(this)">
+            <span style="display:flex;align-items:center;gap:8px">
+              Storage Auditor
+              <span class="lock-icon" id="lock-auditor">🔒</span>
+            </span>
+            <span class="chevron">▼</span>
+          </button>
+          <div class="auditor-links" id="auditor-links">
+            <a href="http://localhost:3001/dashboard?company=CRA%20Construction" class="auditor-link">🏗️ CRA Construction <span class="arrow">→</span></a>
+            <a href="http://localhost:3001/dashboard?company=Rosemary%20Villas" class="auditor-link">🏡 Rosemary Villas <span class="arrow">→</span></a>
+            <a href="http://localhost:3001/dashboard?company=Site%20Development%20Services%20(SDS)" class="auditor-link">🛣️ Site Development Services <span class="arrow">→</span></a>
+            <a href="http://localhost:3001/dashboard?company=Cypress%20Bend" class="auditor-link">🌿 Cypress Bend <span class="arrow">→</span></a>
+            <a href="http://localhost:3001/dashboard?company=Versailles%20Holdings" class="auditor-link">🏛️ Versailles Holdings <span class="arrow">→</span></a>
+            <a href="http://localhost:3001/dashboard" class="auditor-link" style="color:var(--text-dimmer);font-size:12px">⊕ All Companies <span class="arrow">→</span></a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="hub-footer">Alberius Operations · Internal</div>
 
   </div><!-- /#main-content -->
 
   <script>
-    /* ── Auth ── */
+    /* ─────────────────────────────────────────────
+       Config
+    ───────────────────────────────────────────── */
     const AUTH_URL = 'https://script.google.com/macros/s/AKfycbx2dAQwXeR-wnCpY1jlFzwkWtUF9OGNGzB4Y2nDn3jGfGxksVOuxh18--BIgrZ9umkz/exec';
 
-    function showMain() {
-      document.getElementById('login-overlay').style.display = 'none';
-      document.getElementById('main-content').style.display = 'flex';
+    // Admin-only tile IDs (tile element id + corresponding wrap/lock ids)
+    const ADMIN_TILE_IDS = ['accounting', 'dashboard', 'sds', 'auditor'];
+
+    /* ─────────────────────────────────────────────
+       Role helpers
+    ───────────────────────────────────────────── */
+    function isAdmin(role) {
+      return typeof role === 'string' && role.toLowerCase() === 'admin';
     }
+
+    /* ─────────────────────────────────────────────
+       Apply role-based UI after login/restore
+    ───────────────────────────────────────────── */
+    function applyRoleUI(session) {
+      const admin = isAdmin(session.role);
+
+      // ── User badge in header ──
+      const nameEl = document.getElementById('user-badge-name');
+      const roleEl = document.getElementById('user-badge-role');
+      nameEl.textContent = session.username || session.name || '';
+      roleEl.textContent = admin ? 'Admin' : 'Staff';
+      roleEl.className   = 'user-role-badge' + (admin ? '' : ' role-staff');
+      document.getElementById('user-badge').style.display = 'flex';
+
+      // ── Tile access ──
+      if (!admin) {
+        ADMIN_TILE_IDS.forEach(function (id) {
+          var tile = document.getElementById('tile-' + id);
+          var wrap = document.getElementById('wrap-' + id);
+          var lock = document.getElementById('lock-' + id);
+          if (tile) tile.classList.add('admin-locked');
+          if (wrap) wrap.classList.add('is-locked');
+          if (lock) lock.style.display = 'inline';
+        });
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       Show hub
+    ───────────────────────────────────────────── */
+    function showMain(session) {
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('main-content').style.display  = 'flex';
+      applyRoleUI(session);
+    }
+
+    /* ─────────────────────────────────────────────
+       Logout
+    ───────────────────────────────────────────── */
+    function logout() {
+      sessionStorage.removeItem('rv_session');
+
+      // Reset tile lock state
+      ADMIN_TILE_IDS.forEach(function (id) {
+        var tile = document.getElementById('tile-' + id);
+        var wrap = document.getElementById('wrap-' + id);
+        var lock = document.getElementById('lock-' + id);
+        if (tile) tile.classList.remove('admin-locked');
+        if (wrap) wrap.classList.remove('is-locked');
+        if (lock) lock.style.display = 'none';
+      });
+
+      // Reset user badge
+      document.getElementById('user-badge').style.display = 'none';
+
+      // Show login overlay
+      document.getElementById('main-content').style.display  = 'none';
+      document.getElementById('login-overlay').style.display = 'flex';
+      document.getElementById('login-name').value            = '';
+      document.getElementById('login-password').value        = '';
+      document.getElementById('login-error').style.display   = 'none';
+
+      // Re-bind Enter key (in case it was stripped)
+      document.getElementById('login-password').addEventListener('keydown', handleEnter);
+    }
+
+    /* ─────────────────────────────────────────────
+       Boot: restore existing session
+    ───────────────────────────────────────────── */
+    function handleEnter(e) { if (e.key === 'Enter') submitLogin(); }
 
     document.addEventListener('DOMContentLoaded', function () {
       const stored = sessionStorage.getItem('rv_session');
       if (stored) {
         try {
           const session = JSON.parse(stored);
-          if (session && session.name && session.role) { showMain(); return; }
-        } catch (e) {}
+          // Accept {username,role} (new) or {name,role} (legacy)
+          if (session && (session.username || session.name) && session.role) {
+            if (!session.username) session.username = session.name;
+            showMain(session);
+            return;
+          }
+        } catch (e) { /* ignore bad JSON */ }
       }
 
-      // Wire Enter key on password field
-      document.getElementById('login-password').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') submitLogin();
-      });
+      // Not logged in — wire Enter on password field
+      document.getElementById('login-password').addEventListener('keydown', handleEnter);
     });
 
+    /* ─────────────────────────────────────────────
+       Submit login
+    ───────────────────────────────────────────── */
     async function submitLogin() {
       const username = document.getElementById('login-name').value.trim();
       const password = document.getElementById('login-password').value;
-      const errorEl = document.getElementById('login-error');
+      const errorEl  = document.getElementById('login-error');
+      const btn      = document.getElementById('login-submit-btn');
+
       errorEl.style.display = 'none';
-      errorEl.textContent = '';
+      errorEl.textContent   = '';
 
       if (!username || !password) {
-        errorEl.textContent = 'Please enter your name and password.';
+        errorEl.textContent   = 'Please select your name and enter your password.';
         errorEl.style.display = 'block';
         return;
       }
 
-      const url = AUTH_URL + '?action=login&username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password);
+      btn.disabled    = true;
+      btn.textContent = 'Signing in…';
+
+      const url = AUTH_URL
+        + '?action=login'
+        + '&username=' + encodeURIComponent(username)
+        + '&password=' + encodeURIComponent(password);
+
       try {
-        const res = await fetch(url);
+        const res  = await fetch(url);
         const data = await res.json();
+
         if (data.success && data.user) {
-          sessionStorage.setItem('rv_session', JSON.stringify({ name: data.user.name, role: data.user.role }));
-          showMain();
+          const session = {
+            username: data.user.name || username,
+            role:     data.user.role
+          };
+          sessionStorage.setItem('rv_session', JSON.stringify(session));
+          showMain(session);
         } else {
-          errorEl.textContent = data.error || 'Invalid credentials. Please try again.';
+          errorEl.textContent   = data.error || 'Invalid credentials. Please try again.';
           errorEl.style.display = 'block';
+          btn.disabled    = false;
+          btn.textContent = 'Sign In';
         }
       } catch (err) {
-        errorEl.textContent = 'Connection error. Please try again.';
+        errorEl.textContent   = 'Connection error. Please try again.';
         errorEl.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Sign In';
       }
     }
 
-    /* ── Storage Auditor toggle ── */
+    /* ─────────────────────────────────────────────
+       Storage Auditor toggle
+    ───────────────────────────────────────────── */
     function toggleAuditor(btn) {
       const expanded = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!expanded));
