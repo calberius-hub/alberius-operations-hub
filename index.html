@@ -522,6 +522,40 @@
 
     </div>
 
+    <div class="section-label">CRA Construction</div>
+
+    <div class="modules">
+
+      <!-- ADMIN-ONLY: CRA Marketing Agent -->
+      <div class="tile-wrap" id="wrap-marketing">
+        <a id="tile-marketing" href="https://www.instagram.com/cra_construction_/" target="_blank" rel="noopener" class="module-btn">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="module-icon">📸</span>
+            <span>CRA Marketing Agent</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-marketing">🔒</span>
+            <span class="arrow">→</span>
+          </span>
+        </a>
+      </div>
+
+      <!-- ADMIN-ONLY: CRA Website -->
+      <div class="tile-wrap" id="wrap-cra-website">
+        <a id="tile-cra-website" href="https://cra-construction-website.netlify.app" target="_blank" rel="noopener" class="module-btn">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="module-icon">🏗️</span>
+            <span>CRA Website</span>
+          </span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-cra-website">🔒</span>
+            <span class="arrow">→</span>
+          </span>
+        </a>
+      </div>
+
+    </div>
+
     <div class="section-label">Tools</div>
 
     <div class="modules">
@@ -558,7 +592,7 @@
     const AUTH_URL = 'https://script.google.com/macros/s/AKfycbx2dAQwXeR-wnCpY1jlFzwkWtUF9OGNGzB4Y2nDn3jGfGxksVOuxh18--BIgrZ9umkz/exec';
 
     // Admin-only tile IDs (tile element id + corresponding wrap/lock ids)
-    const ADMIN_TILE_IDS = ['accounting', 'dashboard', 'sds', 'auditor'];
+    const ADMIN_TILE_IDS = ['accounting', 'dashboard', 'sds', 'auditor', 'marketing', 'cra-website'];
 
     /* ─────────────────────────────────────────────
        Role helpers
