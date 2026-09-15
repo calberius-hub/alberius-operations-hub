@@ -1,0 +1,9 @@
+{
+  "name": "alberius-operations-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Alberius Operations Hub — static shell plus the punch-out API",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

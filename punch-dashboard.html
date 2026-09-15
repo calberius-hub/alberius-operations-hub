@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f5f1ea" />
+<title>Punch Dashboard · Rosemary Villas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f5f1ea; --surface:#faf8f3; --surface2:#f2ede3; --surface3:#ebe6db;
+  --border:#cdcaba; --border-soft:#ddd8cb;
+  --text:#1a1f1c; --text-dim:#2f3a33; --text-dimmer:#5e6e63;
+  --gold:#8c7342; --sage:#5a8a5e; --sage-dark:#47704b; --coral:#b24a3a; --coral-dark:#933a2d;
+  --shadow:0 1px 2px rgba(26,31,28,.06), 0 4px 14px rgba(26,31,28,.05);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.45; min-height:100vh;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:var(--sage-dark)}
+
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px 90px}
+
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(245,241,234,.94);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border-soft);
+}
+.topbar-inner{
+  max-width:1040px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;gap:12px;min-height:60px;flex-wrap:wrap;
+}
+.back-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;flex:0 0 38px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border-soft);
+  font-size:18px;color:var(--text-dim);
+}
+.topbar-title{flex:1;min-width:0}
+.topbar-title .t1{
+  font-size:10px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text-dimmer);
+}
+.topbar-title .t2{
+  font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;line-height:1.15;
+}
+.tb-actions{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 17px;border-radius:10px;font-size:14px;font-weight:600;
+  background:var(--sage);color:#fff;
+}
+.btn:active{opacity:.85}
+.btn.ghost{background:var(--surface);color:var(--text-dim);border:1px solid var(--border)}
+.btn.sm{padding:8px 13px;font-size:13px}
+
+.section-label{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text-dimmer);margin:28px 0 12px;
+}
+.card{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:14px;box-shadow:var(--shadow);
+}
+
+/* ── Roll-up tiles ── */
+.rollup{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+.rollup .stat{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:13px;padding:16px 14px;text-align:center;box-shadow:var(--shadow);
+}
+.rollup .stat b{display:block;font-size:28px;font-weight:700;line-height:1.1}
+.rollup .stat span{
+  font-size:10px;font-weight:700;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--text-dimmer);
+}
+.rollup .stat.ok b{color:var(--sage-dark)}
+.rollup .stat.bad b{color:var(--coral-dark)}
+@media(max-width:700px){ .rollup{grid-template-columns:repeat(2,1fr)} }
+
+/* ── Progress ── */
+.pbar{height:7px;border-radius:999px;background:var(--surface3);overflow:hidden;display:flex}
+.pbar i{display:block;height:100%}
+.pbar i.ok{background:var(--sage)}
+.pbar i.bad{background:var(--coral)}
+
+/* ── Unit rows ── */
+.urow{
+  display:flex;align-items:center;gap:18px;padding:16px 18px;width:100%;
+  border-bottom:1px solid var(--border-soft);text-align:left;
+}
+.urow:last-child{border-bottom:none}
+.urow:hover{background:var(--surface2)}
+.urow .unum{font-size:17px;font-weight:600;flex:0 0 112px}
+.urow .ubar{flex:1;min-width:120px}
+.urow .ubar .meta{font-size:12px;color:var(--text-dimmer);margin-bottom:6px}
+.urow .uwho{flex:0 0 150px;font-size:12.5px;color:var(--text-dimmer);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.urow .ustat{flex:0 0 110px;text-align:right}
+.chev{color:var(--text-dimmer);font-size:19px;flex:0 0 auto}
+@media(max-width:700px){
+  .urow{flex-wrap:wrap;gap:8px}
+  .urow .unum{flex:1 0 auto}
+  .urow .ustat{flex:0 0 auto}
+  .urow .uwho{flex:1 0 100%;order:5}
+  .urow .ubar{flex:1 0 100%;order:4}
+}
+
+.pill{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:4px 10px;border-radius:999px;white-space:nowrap;
+}
+.pill.bad{background:#f7e3df;color:var(--coral-dark)}
+.pill.done{background:#e2eee3;color:var(--sage-dark)}
+.pill.wip{background:var(--surface3);color:var(--text-dimmer)}
+
+/* ── Detail ── */
+.rep-head{padding:22px 20px}
+.rep-head h2{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:600;line-height:1.15}
+.rep-head .rl{font-size:13.5px;color:var(--text-dimmer);margin-top:5px}
+.rep-room{margin-top:26px}
+.rep-room h3{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:9px;
+}
+.rep-item{padding:14px 18px;border-bottom:1px solid var(--border-soft)}
+.rep-item:last-child{border-bottom:none}
+.rep-item .ri-t{font-size:14.5px;line-height:1.4;display:flex;gap:10px}
+.rep-item .ri-t .dot{font-weight:700;flex:0 0 auto;color:var(--coral)}
+.rep-item.na .ri-t .dot{color:var(--text-dimmer)}
+.rep-item .ri-n{
+  font-size:13.5px;color:var(--text-dim);margin:9px 0 0 20px;padding:10px 13px;
+  background:var(--surface2);border-radius:9px;border-left:3px solid var(--gold);
+}
+.rep-photos{display:flex;gap:9px;flex-wrap:wrap;margin:11px 0 0 20px}
+.rep-photos img{
+  width:132px;height:132px;object-fit:cover;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface3);cursor:zoom-in;
+}
+.empty{padding:40px 22px;text-align:center;color:var(--text-dimmer);font-size:14.5px}
+.empty .ic{font-size:36px;display:block;margin-bottom:12px}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.chip{
+  padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;
+  background:var(--surface);border:1px solid var(--border);color:var(--text-dimmer);
+}
+.chip.on{background:var(--text);border-color:var(--text);color:var(--surface)}
+
+.footnote{text-align:center;font-size:11.5px;color:var(--text-dimmer);margin-top:34px;letter-spacing:.05em}
+.sync-note{font-size:12px;color:var(--text-dimmer)}
+.sync-note.err{color:var(--coral-dark)}
+
+/* Lightbox */
+#lb{
+  position:fixed;inset:0;background:rgba(26,31,28,.88);z-index:200;
+  display:none;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;
+}
+#lb.on{display:flex}
+#lb img{max-width:100%;max-height:100%;border-radius:10px}
+
+.view{display:none}
+.view.on{display:block}
+
+@media print{
+  .topbar,.no-print{display:none !important}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .card{border:none;box-shadow:none}
+  .rep-item{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="topbar-title">
+      <div class="t1" id="tbKicker">Rosemary Villas</div>
+      <div class="t2" id="tbTitle">Punch Dashboard</div>
+    </div>
+    <div class="tb-actions">
+      <span class="sync-note" id="syncNote"></span>
+      <button class="btn ghost sm" onclick="refresh()">Refresh</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ Gate ══ -->
+  <section class="view" id="view-gate">
+    <div class="card empty" style="margin-top:40px">
+      <span class="ic">🔒</span>
+      <div style="font-size:16px;color:var(--text);margin-bottom:8px">Admin sign-in required</div>
+      <div style="margin-bottom:20px">Sign in on the hub, then come back to this page.</div>
+      <a class="btn" href="index.html">Go to the hub</a>
+    </div>
+  </section>
+
+  <!-- ══ All units ══ -->
+  <section class="view" id="view-list">
+    <div class="rollup" id="rollup"></div>
+
+    <div class="section-label">Units</div>
+    <div class="filters no-print" id="filters"></div>
+    <div class="card" id="unitList"></div>
+
+    <div class="footnote">Updates as the managers walk. Alberius Operations · Internal</div>
+  </section>
+
+  <!-- ══ One unit ══ -->
+  <section class="view" id="view-unit">
+    <div class="card rep-head" id="repHead"></div>
+    <div class="filters no-print" style="margin-top:16px" id="detailFilters"></div>
+    <div id="repBody"></div>
+    <div class="no-print" style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn ghost" onclick="copyDetail()">Copy Summary</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="lb" onclick="this.classList.remove('on')"><img id="lbImg" alt="Punch photo" /></div>
+
+<script src="punch-data.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Central view of every unit the managers are punching out.
+   Reads the same Netlify Blobs store the phone app writes to.
+   ═══════════════════════════════════════════════════════════ */
+const API_URL = '/.netlify/functions/punch';
+const API_KEY = 'rv-punch-2026';
+
+let units      = [];      // summaries from the server
+let detail     = null;    // the unit currently opened
+let showAll    = false;   // detail: failures only, or every answered item
+let listFilter = 'all';   // all | open | clear
+let view       = 'list';
+const photoCache = {};
+
+async function api(action, payload){
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'x-punch-key':API_KEY },
+    body: JSON.stringify(Object.assign({ action:action }, payload || {}))
+  });
+  const data = await res.json().catch(function(){ return {}; });
+  if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+  return data;
+}
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})
+       + ' · ' + d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+function ago(ts){
+  if(!ts) return '';
+  const m = Math.round((Date.now() - ts) / 60000);
+  if(m < 1)  return 'just now';
+  if(m < 60) return m + ' min ago';
+  const h = Math.round(m/60);
+  if(h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  const d = Math.round(h/24);
+  return d + (d === 1 ? ' day ago' : ' days ago');
+}
+function progressBar(pass, fail, total){
+  const p = total ? pass/total*100 : 0;
+  const f = total ? fail/total*100 : 0;
+  return '<div class="pbar"><i class="ok" style="width:'+p.toFixed(2)+'%"></i>'
+       + '<i class="bad" style="width:'+f.toFixed(2)+'%"></i></div>';
+}
+function setNote(msg, isErr){
+  const el = document.getElementById('syncNote');
+  el.textContent = msg || '';
+  el.className = 'sync-note' + (isErr ? ' err' : '');
+}
+
+function setView(name){
+  view = name;
+  ['gate','list','unit'].forEach(function(v){
+    document.getElementById('view-'+v).classList.toggle('on', v === name);
+  });
+  document.getElementById('backBtn').style.display = name === 'unit' ? 'flex' : 'none';
+  const t = document.getElementById('tbTitle');
+  const k = document.getElementById('tbKicker');
+  if(name === 'unit'){ k.textContent = 'Punch Out'; t.textContent = 'Unit ' + detail.unit; }
+  else               { k.textContent = 'Rosemary Villas'; t.textContent = 'Punch Dashboard'; }
+  window.scrollTo(0,0);
+}
+function goBack(){ if(view === 'unit') renderList(); }
+
+/* ═══ All units ═══ */
+async function refresh(){
+  setNote('Loading…');
+  try{
+    const res = await api('list');
+    units = res.units || [];
+    setNote('Updated ' + fmtDate(Date.now()));
+    if(view === 'unit'){ await openUnit(detail.unit); }
+    else renderList();
+  }catch(e){
+    setNote('Could not reach the server', true);
+  }
+}
+
+function renderList(){
+  let openFails = 0, doneUnits = 0;
+  units.forEach(function(u){
+    openFails += u.fail;
+    if(u.done >= TOTAL_ITEMS) doneUnits++;
+  });
+
+  document.getElementById('rollup').innerHTML =
+      '<div class="stat"><b>'+units.length+'</b><span>Units</span></div>'
+    + '<div class="stat bad"><b>'+openFails+'</b><span>Open punch items</span></div>'
+    + '<div class="stat ok"><b>'+doneUnits+'</b><span>Fully walked</span></div>'
+    + '<div class="stat"><b>'+(units.length - doneUnits)+'</b><span>In progress</span></div>';
+
+  const counts = {
+    all:   units.length,
+    open:  units.filter(function(u){ return u.fail > 0; }).length,
+    clear: units.filter(function(u){ return u.fail === 0 && u.done >= TOTAL_ITEMS; }).length
+  };
+  document.getElementById('filters').innerHTML =
+    [['all','All units'],['open','Needs work'],['clear','All clear']].map(function(f){
+      return '<button class="chip'+(listFilter===f[0]?' on':'')+'" onclick="setFilter(\''+f[0]+'\')">'
+           + f[1]+' · '+counts[f[0]]+'</button>';
+    }).join('');
+
+  const shown = units.filter(function(u){
+    if(listFilter === 'open')  return u.fail > 0;
+    if(listFilter === 'clear') return u.fail === 0 && u.done >= TOTAL_ITEMS;
+    return true;
+  });
+
+  const list = document.getElementById('unitList');
+  if(!shown.length){
+    list.innerHTML = '<div class="empty"><span class="ic">🏠</span>'
+      + (units.length ? 'No units match this filter.'
+                      : 'Nothing yet — units appear here as the managers start walking them.')
+      + '</div>';
+    return;
+  }
+
+  list.innerHTML = shown.map(function(u){
+    const left = TOTAL_ITEMS - u.done;
+    const complete = left === 0;
+    let pill;
+    if(u.fail)         pill = '<span class="pill bad">'+u.fail+' to fix</span>';
+    else if(complete)  pill = '<span class="pill done">All clear</span>';
+    else               pill = '<span class="pill wip">'+left+' left</span>';
+    const who = (u.inspectors && u.inspectors.length) ? u.inspectors.join(', ') : '—';
+    return '<button class="urow" onclick="openUnit(\''+esc(u.unit)+'\')">'
+      + '<span class="unum">Unit '+esc(u.unit)+'</span>'
+      + '<span class="ubar">'
+      +   '<div class="meta">'+u.done+' of '+TOTAL_ITEMS+' checked · '+esc(ago(u.updatedAt))+'</div>'
+      +   progressBar(u.pass, u.fail, TOTAL_ITEMS)
+      + '</span>'
+      + '<span class="uwho">'+esc(who)+'</span>'
+      + '<span class="ustat">'+pill+'</span>'
+      + '<span class="chev">›</span>'
+      + '</button>';
+  }).join('');
+
+  setView('list');
+}
+
+function setFilter(f){ listFilter = f; renderList(); }
+
+/* ═══ One unit ═══ */
+async function openUnit(num){
+  setNote('Loading unit '+num+'…');
+  try{
+    const res = await api('get', { unit:num });
+    if(!res.unit){ setNote('Unit '+num+' is no longer there', true); return; }
+    detail = res.unit;
+    setNote('Updated ' + fmtDate(Date.now()));
+    renderDetail();
+  }catch(e){
+    setNote('Could not load unit '+num, true);
+  }
+}
+
+function detailStats(){
+  let pass = 0, fail = 0;
+  const items = detail.items || {};
+  Object.keys(items).forEach(function(k){
+    if(items[k].status === 'pass') pass++;
+    else if(items[k].status === 'fail') fail++;
+  });
+  return { pass:pass, fail:fail, left:TOTAL_ITEMS - pass - fail };
+}
+
+function renderDetail(){
+  const st = detailStats();
+  const who = (detail.inspectors && detail.inspectors.length)
+    ? detail.inspectors.join(', ') : (detail.inspector || '—');
+
+  document.getElementById('repHead').innerHTML =
+      '<h2>Punch Report · Unit '+esc(detail.unit)+'</h2>'
+    + '<div class="rl">Rosemary Villas at Chenal</div>'
+    + '<div class="rl">Walked by '+esc(who)+' · last activity '+esc(ago(detail.updatedAt))
+    +   ' ('+esc(fmtDate(detail.updatedAt))+')</div>'
+    + '<div class="rl" style="margin-top:10px">'
+    +   '<b style="color:var(--sage-dark)">'+st.pass+' passed</b> · '
+    +   '<b style="color:var(--coral-dark)">'+st.fail+' failed</b> · '
+    +   st.left+' not checked</div>';
+
+  document.getElementById('detailFilters').innerHTML =
+      '<button class="chip'+(!showAll?' on':'')+'" onclick="setShowAll(false)">Failures only</button>'
+    + '<button class="chip'+( showAll?' on':'')+'" onclick="setShowAll(true)">Everything checked</button>';
+
+  const items = detail.items || {};
+  const blocks = [];
+
+  ROOMS.forEach(function(room, ri){
+    const rows = [];
+    room.cats.forEach(function(cat, ci){
+      cat.items.forEach(function(text, ii){
+        const rec = items[itemKey(ri, ci, ii)];
+        if(!rec || !rec.status) return;
+        if(!showAll && rec.status !== 'fail') return;
+        const failed = rec.status === 'fail';
+        const photos = (rec.photos || []).map(function(pid){
+          return '<img data-pid="'+esc(pid)+'" alt="Punch photo" onclick="zoom(this)" />';
+        }).join('');
+        rows.push('<div class="rep-item'+(failed?'':' na')+'">'
+          + '<div class="ri-t"><span class="dot">'+(failed?'✕':'✓')+'</span>'
+          +   '<span>'+esc(text)+'</span></div>'
+          + (rec.note ? '<div class="ri-n">'+esc(rec.note)+'</div>' : '')
+          + (photos ? '<div class="rep-photos">'+photos+'</div>' : '')
+          + '</div>');
+      });
+    });
+    if(rows.length){
+      blocks.push('<div class="rep-room"><h3>'+room.emoji+' '+esc(room.name)+'</h3>'
+        + '<div class="card">'+rows.join('')+'</div></div>');
+    }
+  });
+
+  document.getElementById('repBody').innerHTML = blocks.length
+    ? blocks.join('')
+    : '<div class="card empty"><span class="ic">'+(showAll?'📋':'✅')+'</span>'
+      + (showAll ? 'Nothing has been checked in this unit yet.'
+                 : 'No failed items'+(st.left ? ' so far — '+st.left+' still unchecked.' : '. This unit is clear.'))
+      + '</div>';
+
+  setView('unit');
+  loadPhotos();
+}
+
+function setShowAll(v){ showAll = v; renderDetail(); }
+
+/* Photos come down one at a time so a big unit doesn't stall the page */
+async function loadPhotos(){
+  const imgs = document.querySelectorAll('#repBody img[data-pid]');
+  for(const img of imgs){
+    const pid = img.getAttribute('data-pid');
+    if(photoCache[pid]){ img.src = photoCache[pid]; continue; }
+    try{
+      const res = await api('photo-get', { id:pid });
+      if(res && res.data){ photoCache[pid] = res.data; img.src = res.data; }
+    }catch(e){ img.remove(); }   // never leave a broken frame on the report
+  }
+}
+
+function zoom(img){
+  if(!img.src) return;
+  document.getElementById('lbImg').src = img.src;
+  document.getElementById('lb').classList.add('on');
+}
+
+function copyDetail(){
+  const st = detailStats();
+  const items = detail.items || {};
+  const lines = ['PUNCH LIST — Unit ' + detail.unit, 'Rosemary Villas at Chenal'];
+  const who = (detail.inspectors || []).join(', ');
+  if(who) lines.push('Walked by: ' + who);
+  lines.push(fmtDate(detail.updatedAt));
+  lines.push('');
+  lines.push(st.pass + ' passed · ' + st.fail + ' failed · ' + st.left + ' not checked');
+
+  let any = false;
+  ROOMS.forEach(function(room, ri){
+    const rows = [];
+    room.cats.forEach(function(cat, ci){
+      cat.items.forEach(function(text, ii){
+        const rec = items[itemKey(ri, ci, ii)];
+        if(!rec || rec.status !== 'fail') return;
+        let line = '  • ' + text;
+        if(rec.note) line += '\n      Note: ' + rec.note;
+        if((rec.photos||[]).length){
+          line += '\n      (' + rec.photos.length + ' photo'
+                + (rec.photos.length > 1 ? 's' : '') + ')';
+        }
+        rows.push(line);
+      });
+    });
+    if(rows.length){
+      any = true;
+      lines.push('');
+      lines.push(room.name.toUpperCase());
+      lines.push(rows.join('\n'));
+    }
+  });
+  if(!any){ lines.push(''); lines.push('No failed items.'); }
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(
+    function(){ setNote('Summary copied'); },
+    function(){ window.prompt('Copy this summary:', text); }
+  );
+}
+
+/* ═══ Boot ═══ */
+function isAdmin(){
+  try{
+    const raw = sessionStorage.getItem('rv_session');
+    if(!raw) return false;
+    const s = JSON.parse(raw);
+    return s && typeof s.role === 'string' && s.role.toLowerCase() === 'admin';
+  }catch(e){ return false; }
+}
+
+if(!isAdmin()){
+  setView('gate');
+} else {
+  refresh();
+  setInterval(function(){ if(!document.hidden) refresh(); }, 60000);
+}
+</script>
+</body>
+</html>

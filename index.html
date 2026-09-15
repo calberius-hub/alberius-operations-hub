@@ -514,6 +514,17 @@
         Staff Hub <span class="arrow">→</span>
       </a>
 
+      <!-- ADMIN-ONLY: Punch Dashboard -->
+      <div class="tile-wrap" id="wrap-punch">
+        <a id="tile-punch" href="punch-dashboard.html" class="module-btn">
+          <span>Punch Dashboard</span>
+          <span style="display:flex;align-items:center;gap:6px">
+            <span class="lock-icon" id="lock-punch">&#128274;</span>
+            <span class="arrow">&#8594;</span>
+          </span>
+        </a>
+      </div>
+
       <!-- ADMIN-ONLY: Staff Dashboard -->
       <div class="tile-wrap" id="wrap-dashboard">
         <a id="tile-dashboard" href="https://rosemary-staff.netlify.app/dashboard.html" class="module-btn">
@@ -605,7 +616,7 @@
     const AUTH_URL = 'https://script.google.com/macros/s/AKfycbx2dAQwXeR-wnCpY1jlFzwkWtUF9OGNGzB4Y2nDn3jGfGxksVOuxh18--BIgrZ9umkz/exec';
 
     // Admin-only tile IDs (tile element id + corresponding wrap/lock ids)
-    const ADMIN_TILE_IDS = ['accounting', 'dashboard', 'sds', 'auditor', 'marketing', 'cra-website', 'estimating'];
+    const ADMIN_TILE_IDS = ['accounting', 'punch', 'dashboard', 'sds', 'auditor', 'marketing', 'cra-website', 'estimating'];
 
     /* ─────────────────────────────────────────────
        Role helpers

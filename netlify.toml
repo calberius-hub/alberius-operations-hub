@@ -1,0 +1,20 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+
+# Short links for the punch-out tools
+[[redirects]]
+  from = "/punch"
+  to = "/punchlist.html"
+  status = 200
+
+[[redirects]]
+  from = "/punch-dashboard"
+  to = "/punch-dashboard.html"
+  status = 200

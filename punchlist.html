@@ -234,6 +234,14 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 
 .footnote{text-align:center;font-size:11px;color:var(--text-dimmer);margin-top:32px;letter-spacing:.06em}
 
+/* ── Sync status ── */
+.sync-dot{display:block;font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--text-dimmer);min-height:16px}
+.sync-dot.ok{color:var(--sage-dark)}
+.sync-dot.offline{color:var(--gold)}
+.sync-dot::before{content:'CF';margin-right:6px;font-size:9px;vertical-align:1px;opacity:.75}
+.sync-dot.idle::before,.sync-dot:empty::before{content:none}
+.unit-row .from-office{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.04em}
+
 /* ── Toast ── */
 #toast{
   position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);
@@ -289,6 +297,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 
     <div class="section-label">In progress</div>
     <div class="card" id="unitList"></div>
+    <div style="margin-top:12px;text-align:center"><span class="sync-dot idle"></span></div>
 
     <div class="footnote">Alberius Operations · Internal</div>
   </section>
@@ -332,177 +341,8 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 
 <div id="toast"></div>
 
+<script src="punch-data.js"></script>
 <script>
-/* ═══════════════════════════════════════════════════════════
-   Punch list definition — Rosemary Villas at Chenal
-   Transcribed from the printed CM punch list.
-   ═══════════════════════════════════════════════════════════ */
-const ROOMS = [
-  { id:'guest-bed', name:'Guest Bedroom', emoji:'🛏️', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Verify all recessed lights (cans) are operational and consistent in color',
-      'Verify all light switches are functioning properly',
-      'Test all electrical outlets for proper function',
-      'Test ceiling fan operation at all speeds' ]},
-    { name:'Doors, Windows & Hardware', items:[
-      'Inspect door hardware, including knobs and door stops',
-      'Confirm at least one window is operable',
-      'Verify window blinds function correctly' ]},
-    { name:'Paint, Trim & Finish', items:[
-      'Inspect trim for paint cracks or deficiencies',
-      'Inspect walls for bowing or irregularities',
-      'Verify all wall paint touch-ups are complete' ]}
-  ]},
-
-  { id:'guest-bath', name:'Guest Bathroom', emoji:'🛁', cats:[
-    { name:'Electrical & Ventilation', items:[
-      'Verify all recessed lights (cans) are consistent in color',
-      'Test exhaust fan for proper operation' ]},
-    { name:'Plumbing', items:[
-      'Test all plumbing fixtures for proper operation',
-      'Verify hot water is functional at all taps',
-      'Verify toilet is functioning properly' ]},
-    { name:'Cabinets & Hardware', items:[
-      'Verify all cabinets are fully painted and finished',
-      'Confirm all cabinets operate properly (open/close smoothly)',
-      'Inspect and verify cabinet hardware is installed correctly',
-      'Verify toilet paper holder is installed securely',
-      'Remove clips from mirrors' ]},
-    { name:'Tile & Finish', items:[
-      'Inspect trim for required paint touch-ups',
-      'Inspect tile for missing or incomplete grout',
-      'Verify all tile transitions are properly installed' ]}
-  ]},
-
-  { id:'foyer', name:'Foyer', emoji:'🚪', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Verify all recessed lights (cans) are operational and consistent in color',
-      'Test hanging light fixture for proper operation',
-      'Verify all light switches are functioning properly' ]},
-    { name:'Paint & Finish', items:[
-      'Inspect for any paint touch-ups needed' ]}
-  ]},
-
-  { id:'flex', name:'Flex Room', emoji:'🧩', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Verify all recessed lights (4 cans) are operational and consistent in color' ]},
-    { name:'Doors & Mechanical', items:[
-      'Test ceiling fan for proper operation',
-      'Test sliding door for proper operation',
-      'Inspect sliding door for paint or finish touch-ups' ]},
-    { name:'Paint & Finish', items:[
-      'Inspect trim for paint touch-ups',
-      'Inspect walls for bowing or irregularities',
-      'Verify all wall paint touch-ups are complete' ]}
-  ]},
-
-  { id:'kitchen', name:'Kitchen', emoji:'🍽️', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Set backsplash lights (far right, 1 click left) and verify operation',
-      'Verify all lights are operational and consistent in color',
-      'Verify all light switches function correctly' ]},
-    { name:'Appliances', items:[
-      'Set correct time on refrigerator',
-      'Set correct time on dishwasher',
-      'Set correct time on microwave',
-      'Set correct time on oven',
-      'Remove all packaging from appliances',
-      'Verify dishwasher runs properly',
-      'Verify refrigerator is cooling properly',
-      'Verify vent hood operates properly',
-      'Verify all appliances are operational' ]},
-    { name:'Cabinets & Countertops', items:[
-      'Check all cabinets operate correctly',
-      'Check cabinet alignment (doors even)',
-      'Verify cabinet hardware is installed and tight',
-      'Check cabinets for paint touch-ups',
-      'Inspect countertops for damage or glue residue' ]},
-    { name:'Plumbing & Gas', items:[
-      'Verify sink operates properly (hot/cold)',
-      'Check for leaks under sink',
-      'Verify garbage disposal works properly',
-      'Verify gas stove operates properly',
-      'Check for gas leaks' ]},
-    { name:'Tile, Flooring & Finish', items:[
-      'Check backsplash for missing grout or gaps',
-      'Inspect flooring for damage' ]}
-  ]},
-
-  { id:'laundry', name:'Laundry Room', emoji:'🧺', cats:[
-    { name:'Cabinets & Finish', items:[
-      'Inspect all cabinets for required paint touch-ups',
-      'Confirm all cabinets operate properly (open/close smoothly)' ]},
-    { name:'HVAC & Plumbing', items:[
-      'Verify HVAC vent is installed and unobstructed',
-      'Test sink for proper plumbing function' ]},
-    { name:'Doors & Lighting', items:[
-      'Verify pocket door operates smoothly and latches properly',
-      'Confirm recessed lights (cans) are consistent in color' ]}
-  ]},
-
-  { id:'living', name:'Living Room', emoji:'🛋️', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Verify all recessed lights (cans) are operational and consistent in color',
-      'Test ceiling fan for proper operation',
-      'Test hanging light fixture for proper operation',
-      'Test all electrical outlets for proper function',
-      'Verify TV outlet/connection is operational',
-      'Test floor outlet for proper function' ]},
-    { name:'Fireplace & Doors', items:[
-      'Verify fireplace is installed and functioning properly',
-      'Verify double wide doors operate smoothly and latch properly' ]}
-  ]},
-
-  { id:'master-bed', name:'Master Bedroom', emoji:'🛏️', cats:[
-    { name:'Electrical & Lighting', items:[
-      'Verify all recessed lights (4 cans) are operational and consistent in color',
-      'Test ceiling fan for proper operation',
-      'Test all electrical outlets for proper function' ]},
-    { name:'Doors, Windows & Hardware', items:[
-      'Verify windows open properly',
-      'Check blinds for proper operation',
-      'Inspect and verify all door hardware is installed correctly' ]},
-    { name:'Paint, Trim & Finish', items:[
-      'Inspect walls for bowing or irregularities',
-      'Verify all paint touch-ups are complete',
-      'Inspect installation of quarter round trim',
-      'Verify all cabinetry is fully painted and finished' ]}
-  ]},
-
-  { id:'master-bath', name:'Master Bathroom', emoji:'🚿', cats:[
-    { name:'Electrical & Ventilation', items:[
-      'Verify all recessed lights (cans) are operational and consistent in color',
-      'Test exhaust fan for proper operation' ]},
-    { name:'Plumbing & Fixtures', items:[
-      'Verify all plumbing fixtures and hardware are installed',
-      'Test all plumbing fixtures for proper water flow and operation',
-      'Verify toilet is functioning properly' ]},
-    { name:'Shower, Glass & Mirrors', items:[
-      'Confirm glass shower door operates smoothly and seals properly',
-      'Confirm mirrors are installed securely and aligned properly' ]},
-    { name:'Tile & Finish', items:[
-      'Inspect tile installation and grout for completeness and quality',
-      'Inspect countertops for residue or installation debris' ]},
-    { name:'Hardware', items:[
-      'Verify toilet paper holder is installed properly' ]}
-  ]},
-
-  { id:'master-closet', name:'Master Closet', emoji:'👔', cats:[
-    { name:'Hardware & Shelving', items:[
-      'Verify all closet hardware is installed',
-      'Verify seasonal rods are installed',
-      'Verify all hardware is secure and aligned properly' ]},
-    { name:'Paint & Finish', items:[
-      'Inspect for required paint touch-ups',
-      'Verify installation of quarter round trim' ]}
-  ]}
-];
-
-/* Stable key for every checklist item: room.category.index */
-function itemKey(roomIdx, catIdx, itemIdx){
-  return ROOMS[roomIdx].id + '.' + catIdx + '.' + itemIdx;
-}
-const TOTAL_ITEMS = ROOMS.reduce((n,r)=> n + r.cats.reduce((m,c)=> m + c.items.length, 0), 0);
 
 /* ═══════════════════════════════════════════════════════════
    Storage — checklist state in localStorage, photos in IndexedDB
@@ -526,6 +366,158 @@ function saveStore(){
     try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
     catch(e){ toast('Could not save — phone storage may be full'); }
   }, 180);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Shared copy — the phone stays local-first and pushes in the
+   background, so a unit with no signal still works and catches up
+   later. Merging is per-item and newest-wins on both sides, so two
+   managers in the same unit converge instead of clobbering.
+   ═══════════════════════════════════════════════════════════ */
+const API_URL = '/.netlify/functions/punch';
+const API_KEY = 'rv-punch-2026';
+const PENDING_PHOTOS_KEY = 'rv_punch_pending_photos';
+
+let syncState = 'idle';   // idle | syncing | ok | offline
+
+async function api(action, payload, timeoutMs){
+  const ctrl  = new AbortController();
+  const timer = setTimeout(function(){ ctrl.abort(); }, timeoutMs || 15000);
+  try{
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-punch-key':API_KEY },
+      body: JSON.stringify(Object.assign({ action:action }, payload || {})),
+      signal: ctrl.signal
+    });
+    const data = await res.json().catch(function(){ return {}; });
+    if(!res.ok) throw new Error(data.error || ('HTTP '+res.status));
+    return data;
+  } finally { clearTimeout(timer); }
+}
+
+function setSync(state){
+  syncState = state;
+  const label = state==='syncing' ? 'Syncing…'
+              : state==='ok'      ? 'Synced to the office'
+              : state==='offline' ? 'Offline — saved on this phone'
+              : '';
+  document.querySelectorAll('.sync-dot').forEach(function(el){
+    el.className   = 'sync-dot ' + state;
+    el.textContent = label;
+  });
+}
+
+/* ── Outbound queue ── */
+const pushQueue = new Set();
+let pushTimer = null;
+
+function queuePush(num){
+  if(!num) return;
+  pushQueue.add(num);
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(flushPush, 1500);
+}
+
+async function flushPush(){
+  await retryPendingPhotos();
+  if(!pushQueue.size) return;
+  const nums = Array.from(pushQueue);
+  pushQueue.clear();
+  setSync('syncing');
+
+  let allOk = true;
+  for(const num of nums){
+    const u = store.units[num];
+    if(!u) continue;
+    try{
+      const res = await api('sync', { unit:num, rec:{
+        unit:num, inspector:u.inspector||'',
+        createdAt:u.createdAt, updatedAt:u.updatedAt, items:u.items
+      }});
+      if(res.unit) applyRemote(res.unit, num);
+    }catch(e){
+      allOk = false;
+      pushQueue.add(num);         // keep it queued for the next attempt
+    }
+  }
+  setSync(allOk ? 'ok' : 'offline');
+  if(!allOk){                      // back off, then try again on its own
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(flushPush, 20000);
+  }
+}
+
+/* Fold a server record into the local copy. Only strictly-newer items win,
+   so this never undoes an edit the phone made a moment ago. */
+function applyRemote(remote, num){
+  if(!store.units[num]){
+    store.units[num] = {
+      unit:num, createdAt:remote.createdAt||Date.now(), updatedAt:0,
+      inspector:remote.inspector||'', items:{}
+    };
+  }
+  const local  = store.units[num];
+  const rItems = remote.items || {};
+  let changed = false;
+  for(const k of Object.keys(rItems)){
+    const r = rItems[k], l = local.items[k];
+    if(!l || (r.t||0) > (l.t||0)){
+      local.items[k] = {
+        status:r.status||null, note:r.note||'',
+        photos:(r.photos||[]).slice(), t:r.t||0
+      };
+      changed = true;
+    }
+  }
+  local.updatedAt = Math.max(local.updatedAt||0, remote.updatedAt||0);
+  if(!local.inspector && remote.inspector) local.inspector = remote.inspector;
+  saveStore();                     // saveStore, not touchUnit — no echo back
+  return changed;
+}
+
+/* ── Photos that haven't reached the server yet ── */
+function pendingPhotos(){
+  try{ return JSON.parse(localStorage.getItem(PENDING_PHOTOS_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function setPendingPhotos(list){
+  try{ localStorage.setItem(PENDING_PHOTOS_KEY, JSON.stringify(list.slice(0,200))); }
+  catch(e){}
+}
+function markPhotoPending(id){
+  const list = pendingPhotos();
+  if(list.indexOf(id) === -1){ list.push(id); setPendingPhotos(list); }
+}
+function clearPhotoPending(id){
+  setPendingPhotos(pendingPhotos().filter(function(p){ return p !== id; }));
+}
+
+function blobToDataURL(blob){
+  return new Promise(function(resolve, reject){
+    const fr = new FileReader();
+    fr.onload  = function(){ resolve(fr.result); };
+    fr.onerror = function(){ reject(fr.error); };
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function uploadPhoto(id){
+  const blob = await photoGet(id);
+  if(!blob){ clearPhotoPending(id); return true; }   // deleted before it went up
+  try{
+    await api('photo-put', { id:id, data: await blobToDataURL(blob) });
+    clearPhotoPending(id);
+    return true;
+  }catch(e){
+    markPhotoPending(id);
+    return false;
+  }
+}
+
+async function retryPendingPhotos(){
+  const list = pendingPhotos();
+  for(const id of list){ await uploadPhoto(id); }
 }
 
 /* ── IndexedDB for photo blobs ── */
@@ -573,7 +565,17 @@ async function photoDel(id){
 const urlCache = {};
 async function photoURL(id){
   if(urlCache[id]) return urlCache[id];
-  const blob = await photoGet(id);
+  let blob = await photoGet(id);
+  if(!blob){
+    // Shot on someone else's phone — pull it down once and keep a copy
+    try{
+      const res = await api('photo-get', { id:id });
+      if(res && res.data){
+        blob = await (await fetch(res.data)).blob();
+        await photoPut(id, blob);
+      }
+    }catch(e){ return null; }
+  }
   if(!blob) return null;
   urlCache[id] = URL.createObjectURL(blob);
   return urlCache[id];
@@ -624,14 +626,20 @@ function touchUnit(){
   const u = unit();
   if(u){ u.updatedAt = Date.now(); }
   saveStore();
+  queuePush(currentUnit);
 }
 
 function getRec(key){
   const u = unit();
   if(!u) return null;
-  if(!u.items[key]) u.items[key] = { status:null, note:'', photos:[] };
+  if(!u.items[key]) u.items[key] = { status:null, note:'', photos:[], t:0 };
   return u.items[key];
 }
+
+/* Every item carries the moment it last changed — that stamp is what lets
+   two phones merge cleanly instead of whoever syncs last winning outright.
+   Only the real mutators stamp; rendering must never touch it. */
+function stamp(rec){ rec.t = Date.now(); return rec; }
 
 function unitStats(u){
   let pass = 0, fail = 0;
@@ -720,10 +728,19 @@ function goBack(){
 /* ═══════════════════════════════════════════════════════════
    View: units
    ═══════════════════════════════════════════════════════════ */
+/* Units started on other phones, from the last successful list call */
+let remoteSummaries = {};
+
 function renderUnits(){
   const list = document.getElementById('unitList');
-  const nums = Object.keys(store.units).sort(function(a,b){
-    return (store.units[b].updatedAt||0) - (store.units[a].updatedAt||0);
+
+  // Everything this phone knows about, plus anything the office has seen
+  const all = {};
+  Object.keys(store.units).forEach(function(n){ all[n] = true; });
+  Object.keys(remoteSummaries).forEach(function(n){ all[n] = true; });
+
+  const nums = Object.keys(all).sort(function(a,b){
+    return lastTouched(b) - lastTouched(a);
   });
 
   if(!nums.length){
@@ -732,24 +749,60 @@ function renderUnits(){
   } else {
     list.innerHTML = nums.map(function(n){
       const u  = store.units[n];
-      const st = unitStats(u);
+      const rs = remoteSummaries[n];
+      // Local copy wins for display; a unit only on the server shows its summary
+      const st = u ? unitStats(u)
+                   : { pass:rs.pass, fail:rs.fail, done:rs.done,
+                       total:TOTAL_ITEMS, left:TOTAL_ITEMS-rs.done };
       const complete = st.left === 0;
       let badge = '';
-      if(st.fail)      badge = '<span class="pill bad">'+st.fail+' to fix</span>';
+      if(st.fail)       badge = '<span class="pill bad">'+st.fail+' to fix</span>';
       else if(complete) badge = '<span class="pill done">All clear</span>';
+      const who = !u && rs && (rs.inspectors||[]).length
+        ? '<div class="from-office">Started by '+esc(rs.inspectors.join(', '))+'</div>' : '';
+      const when = lastTouched(n);
       return '<button class="unit-row" onclick="openUnit(\''+esc(n)+'\')">'
         + '<span class="grow">'
         +   '<span class="num">Unit '+esc(n)+'</span>'
         +   '<div class="meta">'+st.done+' of '+st.total+' checked'
-        +     (u.updatedAt ? ' · '+esc(fmtDate(u.updatedAt)) : '')+'</div>'
+        +     (when ? ' · '+esc(fmtDate(when)) : '')+'</div>'
         +   progressBar(st.pass, st.fail, st.total)
-        +   (badge ? '<div style="margin-top:8px">'+badge+'</div>' : '')
+        +   (badge || who ? '<div style="margin-top:8px">'+badge+who+'</div>' : '')
         + '</span>'
         + '<span class="chev">›</span>'
         + '</button>';
     }).join('');
   }
   setView('units');
+  pullUnitList();
+}
+
+function lastTouched(n){
+  const u  = store.units[n];
+  const rs = remoteSummaries[n];
+  return Math.max((u && u.updatedAt) || 0, (rs && rs.updatedAt) || 0);
+}
+
+/* Refresh the roster of units in the background — never blocks the screen.
+   Guarded so the re-render it triggers can't start another fetch. */
+let pullingList = false;
+async function pullUnitList(){
+  if(pullingList) return;
+  pullingList = true;
+  try{
+    setSync('syncing');
+    const res = await api('list');
+    const next = {};
+    (res.units || []).forEach(function(s){ next[s.unit] = s; });
+    const changed = JSON.stringify(next) !== JSON.stringify(remoteSummaries);
+    remoteSummaries = next;
+    setSync('ok');
+    if(changed && view === 'units') renderUnits();
+  }catch(e){
+    setSync('offline');
+  }finally{
+    pullingList = false;
+  }
 }
 
 function createUnit(){
@@ -770,17 +823,49 @@ function createUnit(){
   openUnit(num);
 }
 
-function openUnit(num){
-  if(!store.units[num]) return;
+async function openUnit(num){
+  // A unit someone else started exists only on the server until now
+  if(!store.units[num]){
+    store.units[num] = {
+      unit: num, createdAt: Date.now(), updatedAt: 0,
+      inspector: defaultInspector(), items: {}
+    };
+    saveStore();
+  }
   currentUnit = num;
   renderRooms();
+
+  // Then catch up with whatever the other phones have logged
+  try{
+    setSync('syncing');
+    const res = await api('get', { unit:num });
+    if(res.unit){
+      const changed = applyRemote(res.unit, num);
+      if(changed && view === 'rooms' && currentUnit === num) renderRooms();
+    }
+    setSync('ok');
+  }catch(e){
+    setSync('offline');
+  }
 }
 
-function deleteUnit(){
+async function deleteUnit(){
   const num = currentUnit;
   if(!num) return;
-  if(!confirm('Delete Unit '+num+' and all of its notes and photos?\n\nThis cannot be undone.')) return;
+  if(!confirm('Delete Unit '+num+' and all of its notes and photos?\n\n'
+    + 'This removes it for everyone, including the office dashboard, '
+    + 'and cannot be undone.')) return;
+
+  try{
+    await api('delete-unit', { unit:num });
+    delete remoteSummaries[num];
+  }catch(e){
+    toast('No signal — delete it again when you are back online');
+    return;
+  }
+
   const u = store.units[num];
+  if(!u){ currentUnit = null; renderUnits(); return; }
   // Clean up any stored photos for this unit
   for(const k in u.items){
     (u.items[k].photos || []).forEach(function(pid){
@@ -825,7 +910,8 @@ function renderRooms(){
     + '<div class="inspector no-print">'
     +   '<label for="inspectorInput">Inspected by</label>'
     +   '<input type="text" id="inspectorInput" placeholder="Your name" value="'+esc(u.inspector||'')+'" />'
-    + '</div>';
+    + '</div>'
+    + '<div class="no-print" style="margin-top:12px"><span class="sync-dot '+syncState+'"></span></div>';
 
   const insp = document.getElementById('inspectorInput');
   insp.addEventListener('input', function(){
@@ -928,9 +1014,11 @@ function renderRoom(){
 function setStatus(key, status){
   const rec = getRec(key);
   rec.status = (rec.status === status) ? null : status;   // tap again to clear
+  stamp(rec);
   touchUnit();
 
-  const el  = document.getElementById('item-'+key);
+  const el = document.getElementById('item-'+key);
+  if(!el) return;                      // item isn't on screen — nothing to repaint
   const btns = el.querySelectorAll('.seg button');
   btns[0].className = rec.status === 'pass' ? 'on-pass' : '';
   btns[1].className = rec.status === 'fail' ? 'on-fail' : '';
@@ -966,11 +1054,12 @@ function toggleDetail(key){
 function setNote(key, value){
   const rec = getRec(key);
   rec.note = value;
+  stamp(rec);
   touchUnit();
   const el = document.getElementById('item-'+key);
-  const tog = el.querySelector('.note-toggle');
+  if(!el) return;                      // item isn't on screen — nothing to repaint
   const has = !!(rec.note || (rec.photos && rec.photos.length));
-  tog.classList.toggle('has', has);
+  el.querySelector('.note-toggle').classList.toggle('has', has);
 }
 
 async function addPhoto(key, input){
@@ -984,7 +1073,10 @@ async function addPhoto(key, input){
     await photoPut(id, blob);
     const rec = getRec(key);
     rec.photos.push(id);
+    stamp(rec);
     touchUnit();
+    markPhotoPending(id);
+    uploadPhoto(id);
     await renderThumbs(key);
     const el = document.getElementById('item-'+key);
     if(el) el.querySelector('.note-toggle').classList.add('has');
@@ -1015,7 +1107,9 @@ async function renderThumbs(key){
 async function removePhoto(key, pid){
   const rec = getRec(key);
   rec.photos = rec.photos.filter(function(p){ return p !== pid; });
+  stamp(rec);
   touchUnit();
+  clearPhotoPending(pid);
   try{ await photoDel(pid); }catch(e){}
   if(urlCache[pid]){ URL.revokeObjectURL(urlCache[pid]); delete urlCache[pid]; }
   await renderThumbs(key);
@@ -1159,6 +1253,18 @@ loadStore();
 document.getElementById('newUnitInput').addEventListener('keydown', function(e){
   if(e.key === 'Enter') createUnit();
 });
+
+// Anything that didn't make it up last time goes first
+retryPendingPhotos();
+Object.keys(store.units).forEach(queuePush);
+
+// Catch up the moment the phone finds signal again, and when the manager
+// brings the app back to the front after a walk through a dead zone.
+window.addEventListener('online', function(){ flushPush(); pullUnitList(); });
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden){ flushPush(); if(view === 'units') pullUnitList(); }
+});
+
 renderUnits();
 </script>
 </body>
