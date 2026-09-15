@@ -47,12 +47,18 @@ export function mergeUnit(stored, incoming) {
     const bt = b ? (Number(b.t) || 0) : -1;
     if (at >= bt) {
       base.items[k] = {
-        status: a.status === "pass" || a.status === "fail" ? a.status : null,
-        note:   clean(a.note, MAX_NOTE_CHARS),
-        photos: Array.isArray(a.photos)
-                  ? a.photos.map(photoId).filter(Boolean).slice(0, MAX_PHOTOS_PER_ITEM)
-                  : [],
-        t:      at || Date.now(),
+        status:  a.status === "pass" || a.status === "fail" ? a.status : null,
+        note:    clean(a.note, MAX_NOTE_CHARS),
+        photos:  Array.isArray(a.photos)
+                   ? a.photos.map(photoId).filter(Boolean).slice(0, MAX_PHOTOS_PER_ITEM)
+                   : [],
+        // A failed item that has since been put right. The failure stays on
+        // the record — that is the point of a punch list — it just stops
+        // counting as open work.
+        fixed:   a.fixed === true,
+        fixedAt: Number(a.fixedAt) || 0,
+        fixedBy: clean(a.fixedBy, 60),
+        t:       at || Date.now(),
       };
     }
   }
@@ -72,17 +78,17 @@ export function mergeUnit(stored, incoming) {
 
 /* Counts for the dashboard — computed fresh so the list is never stale. */
 export function summarize(rec) {
-  let pass = 0, fail = 0;
+  let pass = 0, fail = 0, fixed = 0;   // `fail` is OPEN failures only
   const items = rec.items || {};
   for (const k of Object.keys(items)) {
-    const s = items[k].status;
-    if (s === "pass") pass++;
-    else if (s === "fail") fail++;
+    const it = items[k];
+    if (it.status === "pass") pass++;
+    else if (it.status === "fail") { if (it.fixed) fixed++; else fail++; }
   }
   return {
     unit:       rec.unit,
-    pass, fail,
-    done:       pass + fail,
+    pass, fail, fixed,
+    done:       pass + fail + fixed,
     inspector:  rec.inspector || "",
     inspectors: rec.inspectors || [],
     createdAt:  rec.createdAt || null,

@@ -14,6 +14,7 @@
   --border:#cdcaba; --border-soft:#ddd8cb;
   --text:#1a1f1c; --text-dim:#2f3a33; --text-dimmer:#5e6e63;
   --gold:#8c7342; --sage:#5a8a5e; --sage-dark:#47704b; --coral:#b24a3a; --coral-dark:#933a2d;
+  --fixed:#4f8a80; --fixed-dark:#3d6f66;
   --shadow:0 1px 2px rgba(26,31,28,.06), 0 4px 14px rgba(26,31,28,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -98,6 +99,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 .pbar i{display:block;height:100%}
 .pbar i.ok{background:var(--sage)}
 .pbar i.bad{background:var(--coral)}
+.pbar i.fix{background:var(--fixed)}
 
 /* ── Units view ── */
 .hero{text-align:center;padding:26px 0 6px}
@@ -124,6 +126,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 }
 .pill.bad{background:#f7e3df;color:var(--coral-dark)}
 .pill.done{background:#e2eee3;color:var(--sage-dark)}
+.pill.fix{background:#dfeceb;color:var(--fixed-dark)}
 .chev{color:var(--text-dimmer);font-size:19px;flex:0 0 auto}
 
 /* ── Rooms view ── */
@@ -134,6 +137,7 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 .stat span{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dimmer)}
 .stat.ok b{color:var(--sage-dark)}
 .stat.bad b{color:var(--coral-dark)}
+.stat.fix b{color:var(--fixed-dark)}
 .inspector{margin-top:14px}
 .inspector label{
   display:block;font-size:10px;font-weight:700;letter-spacing:.14em;
@@ -168,6 +172,27 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 .item:last-child{border-bottom:none}
 .item.is-fail{background:#fdf6f4}
 .item.is-pass{background:#f7faf7}
+.item.is-fixed{background:#f4f9f8}
+.item.is-fixed .item-text{color:var(--text-dim)}
+
+/* ── Closing a punch item out ── */
+.fixbar:empty{display:none}
+.fixbar{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fixbtn{
+  padding:11px 16px;border-radius:10px;border:1.5px solid var(--fixed);
+  background:var(--surface);color:var(--fixed-dark);font-size:14px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;flex:1;
+}
+.fixbtn:active{opacity:.85}
+.fixedtag{
+  flex:1;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+  color:var(--fixed-dark);background:#e6f0ef;border-radius:10px;padding:11px 14px;
+}
+.fixedtag .who{font-weight:400;color:var(--text-dimmer);font-size:12.5px}
+.reopen{
+  flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--text-dimmer);
+  border:1px solid var(--border);border-radius:9px;padding:10px 13px;background:var(--surface);
+}
 .item-text{font-size:14.5px;line-height:1.4;margin-bottom:11px}
 .item.is-pass .item-text{color:var(--text-dim)}
 
@@ -223,6 +248,9 @@ textarea{resize:vertical;min-height:70px;line-height:1.45}
 .rep-item:last-child{border-bottom:none}
 .rep-item .ri-t{font-size:14.5px;line-height:1.4;display:flex;gap:9px}
 .rep-item .ri-t .dot{color:var(--coral);font-weight:700;flex:0 0 auto}
+.rep-item.fixed .ri-t .dot{color:var(--fixed)}
+.rep-item.fixed .ri-t>span:last-child{color:var(--text-dimmer);text-decoration:line-through}
+.rep-fixnote{font-size:12px;font-weight:600;color:var(--fixed-dark);margin:7px 0 0 18px}
 .rep-item .ri-n{
   font-size:13.5px;color:var(--text-dim);margin:8px 0 0 18px;padding:9px 12px;
   background:var(--surface2);border-radius:9px;border-left:3px solid var(--gold);
@@ -641,35 +669,40 @@ function getRec(key){
    Only the real mutators stamp; rendering must never touch it. */
 function stamp(rec){ rec.t = Date.now(); return rec; }
 
+/* `fail` always means OPEN failures. Items marked fixed are counted
+   separately so they stop showing up as work left to do. */
 function unitStats(u){
-  let pass = 0, fail = 0;
+  let pass = 0, fail = 0, fixed = 0;
   for(const k in u.items){
-    const s = u.items[k].status;
-    if(s === 'pass') pass++;
-    else if(s === 'fail') fail++;
+    const it = u.items[k];
+    if(it.status === 'pass') pass++;
+    else if(it.status === 'fail'){ if(it.fixed) fixed++; else fail++; }
   }
-  return { pass:pass, fail:fail, done:pass+fail, total:TOTAL_ITEMS, left:TOTAL_ITEMS-pass-fail };
+  const done = pass + fail + fixed;
+  return { pass:pass, fail:fail, fixed:fixed, done:done,
+           total:TOTAL_ITEMS, left:TOTAL_ITEMS-done };
 }
 
 function roomStats(u, roomIdx){
   const room = ROOMS[roomIdx];
-  let pass = 0, fail = 0, total = 0;
+  let pass = 0, fail = 0, fixed = 0, total = 0;
   room.cats.forEach(function(cat, ci){
     cat.items.forEach(function(_, ii){
       total++;
       const rec = u.items[itemKey(roomIdx, ci, ii)];
-      if(rec && rec.status === 'pass') pass++;
-      else if(rec && rec.status === 'fail') fail++;
+      if(!rec) return;
+      if(rec.status === 'pass') pass++;
+      else if(rec.status === 'fail'){ if(rec.fixed) fixed++; else fail++; }
     });
   });
-  return { pass:pass, fail:fail, done:pass+fail, total:total };
+  return { pass:pass, fail:fail, fixed:fixed, done:pass+fail+fixed, total:total };
 }
 
-function progressBar(pass, fail, total){
-  const p = total ? (pass/total*100) : 0;
-  const f = total ? (fail/total*100) : 0;
-  return '<div class="pbar"><i class="ok" style="width:'+p.toFixed(2)+'%"></i>'
-       + '<i class="bad" style="width:'+f.toFixed(2)+'%"></i></div>';
+function progressBar(pass, fail, total, fixed){
+  const pct = function(n){ return total ? (n/total*100).toFixed(2) : '0'; };
+  return '<div class="pbar"><i class="ok" style="width:'+pct(pass)+'%"></i>'
+       + '<i class="fix" style="width:'+pct(fixed||0)+'%"></i>'
+       + '<i class="bad" style="width:'+pct(fail)+'%"></i></div>';
 }
 
 function esc(s){
@@ -752,12 +785,13 @@ function renderUnits(){
       const rs = remoteSummaries[n];
       // Local copy wins for display; a unit only on the server shows its summary
       const st = u ? unitStats(u)
-                   : { pass:rs.pass, fail:rs.fail, done:rs.done,
+                   : { pass:rs.pass, fail:rs.fail, fixed:rs.fixed||0, done:rs.done,
                        total:TOTAL_ITEMS, left:TOTAL_ITEMS-rs.done };
       const complete = st.left === 0;
       let badge = '';
-      if(st.fail)       badge = '<span class="pill bad">'+st.fail+' to fix</span>';
-      else if(complete) badge = '<span class="pill done">All clear</span>';
+      if(st.fail)              badge = '<span class="pill bad">'+st.fail+' to fix</span>';
+      else if(st.fixed)        badge = '<span class="pill fix">All '+st.fixed+' fixed</span>';
+      else if(complete)        badge = '<span class="pill done">All clear</span>';
       const who = !u && rs && (rs.inspectors||[]).length
         ? '<div class="from-office">Started by '+esc(rs.inspectors.join(', '))+'</div>' : '';
       const when = lastTouched(n);
@@ -766,7 +800,7 @@ function renderUnits(){
         +   '<span class="num">Unit '+esc(n)+'</span>'
         +   '<div class="meta">'+st.done+' of '+st.total+' checked'
         +     (when ? ' · '+esc(fmtDate(when)) : '')+'</div>'
-        +   progressBar(st.pass, st.fail, st.total)
+        +   progressBar(st.pass, st.fail, st.total, st.fixed)
         +   (badge || who ? '<div style="margin-top:8px">'+badge+who+'</div>' : '')
         + '</span>'
         + '<span class="chev">›</span>'
@@ -903,10 +937,11 @@ function renderRooms(){
   document.getElementById('unitSummary').innerHTML =
       '<div class="big">'
     +   '<div class="stat ok"><b>'+st.pass+'</b><span>Passed</span></div>'
-    +   '<div class="stat bad"><b>'+st.fail+'</b><span>Failed</span></div>'
+    +   '<div class="stat bad"><b>'+st.fail+'</b><span>To fix</span></div>'
+    +   '<div class="stat fix"><b>'+st.fixed+'</b><span>Fixed</span></div>'
     +   '<div class="stat"><b>'+st.left+'</b><span>Left</span></div>'
     + '</div>'
-    + progressBar(st.pass, st.fail, st.total)
+    + progressBar(st.pass, st.fail, st.total, st.fixed)
     + '<div class="inspector no-print">'
     +   '<label for="inspectorInput">Inspected by</label>'
     +   '<input type="text" id="inspectorInput" placeholder="Your name" value="'+esc(u.inspector||'')+'" />'
@@ -924,14 +959,15 @@ function renderRooms(){
     const rs = roomStats(u, idx);
     const complete = rs.done === rs.total;
     let badge = '';
-    if(rs.fail)       badge = '<span class="pill bad">'+rs.fail+' failed</span>';
+    if(rs.fail)       badge = '<span class="pill bad">'+rs.fail+' to fix</span>';
+    else if(rs.fixed) badge = '<span class="pill fix">All '+rs.fixed+' fixed</span>';
     else if(complete) badge = '<span class="pill done">Complete</span>';
     return '<button class="room-row'+(complete?' complete':'')+'" onclick="openRoom('+idx+')">'
       + '<span class="room-emoji">'+room.emoji+'</span>'
       + '<span class="grow">'
       +   '<span class="rname">'+esc(room.name)+'</span>'
       +   '<div class="rmeta">'+rs.done+' of '+rs.total+' checked</div>'
-      +   progressBar(rs.pass, rs.fail, rs.total)
+      +   progressBar(rs.pass, rs.fail, rs.total, rs.fixed)
       +   (badge ? '<div style="margin-top:7px">'+badge+'</div>' : '')
       + '</span>'
       + '<span class="chev">›</span>'
@@ -959,8 +995,8 @@ function renderRoom(){
       '<div class="rh-top"><span style="font-size:24px">'+room.emoji+'</span>'
     + '<h2>'+esc(room.name)+'</h2></div>'
     + '<div class="rh-count">'+rs.done+' of '+rs.total+' checked'
-    + (rs.fail ? ' · <span style="color:var(--coral)">'+rs.fail+' failed</span>' : '')+'</div>'
-    + progressBar(rs.pass, rs.fail, rs.total);
+    + roomHeadExtra(rs)+'</div>'
+    + progressBar(rs.pass, rs.fail, rs.total, rs.fixed);
 
   document.getElementById('roomBody').innerHTML = room.cats.map(function(cat, ci){
     const rows = cat.items.map(function(text, ii){
@@ -968,7 +1004,7 @@ function renderRoom(){
       const rec = u.items[key] || { status:null, note:'', photos:[] };
       const hasDetail = !!(rec.note || (rec.photos && rec.photos.length));
       const open = rec.status === 'fail' || hasDetail;
-      return '<div class="item'+(rec.status==='fail'?' is-fail':rec.status==='pass'?' is-pass':'')+'" id="item-'+esc(key)+'">'
+      return '<div class="'+itemClass(rec)+'" id="item-'+esc(key)+'">'
         + '<div class="item-text">'+esc(text)+'</div>'
         + '<div class="seg">'
         +   '<button class="'+(rec.status==='pass'?'on-pass':'')+'" onclick="setStatus(\''+esc(key)+'\',\'pass\')">'
@@ -987,6 +1023,7 @@ function renderRoom(){
         +         'onchange="addPhoto(\''+esc(key)+'\', this)" /></label>'
         +   '</div>'
         + '</div>'
+        + '<div class="fixbar" id="fix-'+esc(key)+'">'+fixBarHTML(key, rec)+'</div>'
         + '</div>';
     }).join('');
     return '<div class="cat"><h3>'+esc(cat.name)+'</h3><div class="card">'+rows+'</div></div>';
@@ -1011,9 +1048,57 @@ function renderRoom(){
   setView('room');
 }
 
+/* An item is one of: unanswered, passed, failed (open), or failed-then-fixed.
+   Marking something fixed never erases the failure — a punch list is a record
+   of what went wrong as much as a list of what's left to do. */
+function itemClass(rec){
+  if(!rec) return 'item';
+  if(rec.status === 'fail') return 'item ' + (rec.fixed ? 'is-fixed' : 'is-fail');
+  if(rec.status === 'pass') return 'item is-pass';
+  return 'item';
+}
+
+function fixBarHTML(key, rec){
+  if(!rec || rec.status !== 'fail') return '';     // only failures get closed out
+  const k = esc(key);
+  if(rec.fixed){
+    const who  = rec.fixedBy ? ' by ' + esc(rec.fixedBy) : '';
+    const when = rec.fixedAt ? ' · ' + esc(fmtDate(rec.fixedAt)) : '';
+    return '<span class="fixedtag">✓ Fixed<span class="who">' + who + when + '</span></span>'
+         + '<button class="reopen" onclick="setFixed(&quot;' + k + '&quot;, false)">Reopen</button>';
+  }
+  return '<button class="fixbtn" onclick="setFixed(&quot;' + k + '&quot;, true)">'
+       + '<span>🔧</span> Mark fixed</button>';
+}
+
+function paintFixBar(key){
+  const bar = document.getElementById('fix-'+key);
+  if(!bar) return;
+  const u = unit();
+  bar.innerHTML = fixBarHTML(key, (u && u.items[key]) || null);
+}
+
+function setFixed(key, isFixed){
+  const rec = getRec(key);
+  if(!rec || rec.status !== 'fail') return;        // only a failure can be fixed
+  rec.fixed   = !!isFixed;
+  rec.fixedAt = isFixed ? Date.now() : 0;
+  rec.fixedBy = isFixed ? ((unit() && unit().inspector) || defaultInspector() || '') : '';
+  stamp(rec);
+  touchUnit();
+
+  const el = document.getElementById('item-'+key);
+  if(el) el.className = itemClass(rec);
+  paintFixBar(key);
+  updateRoomHeadCounts();
+  toast(isFixed ? 'Marked fixed' : 'Reopened');
+}
+
 function setStatus(key, status){
   const rec = getRec(key);
   rec.status = (rec.status === status) ? null : status;   // tap again to clear
+  // Clearing or flipping a failure retires any "fixed" state along with it
+  if(rec.status !== 'fail'){ rec.fixed = false; rec.fixedAt = 0; rec.fixedBy = ''; }
   stamp(rec);
   touchUnit();
 
@@ -1022,7 +1107,8 @@ function setStatus(key, status){
   const btns = el.querySelectorAll('.seg button');
   btns[0].className = rec.status === 'pass' ? 'on-pass' : '';
   btns[1].className = rec.status === 'fail' ? 'on-fail' : '';
-  el.className = 'item' + (rec.status==='fail' ? ' is-fail' : rec.status==='pass' ? ' is-pass' : '');
+  el.className = itemClass(rec);
+  paintFixBar(key);
 
   // A failure always wants a note — open the box straight away
   if(rec.status === 'fail'){
@@ -1036,6 +1122,11 @@ function setStatus(key, status){
   updateRoomHeadCounts();
 }
 
+function roomHeadExtra(rs){
+  return (rs.fail  ? ' · <span style="color:var(--coral)">'+rs.fail+' to fix</span>' : '')
+       + (rs.fixed ? ' · <span style="color:var(--fixed-dark)">'+rs.fixed+' fixed</span>' : '');
+}
+
 function updateRoomHeadCounts(){
   const u  = unit();
   const rs = roomStats(u, currentRoom);
@@ -1043,8 +1134,8 @@ function updateRoomHeadCounts(){
   const count = head.querySelector('.rh-count');
   const bar   = head.querySelector('.pbar');
   if(count) count.innerHTML = rs.done+' of '+rs.total+' checked'
-    + (rs.fail ? ' · <span style="color:var(--coral)">'+rs.fail+' failed</span>' : '');
-  if(bar) bar.outerHTML = progressBar(rs.pass, rs.fail, rs.total);
+    + roomHeadExtra(rs);
+  if(bar) bar.outerHTML = progressBar(rs.pass, rs.fail, rs.total, rs.fixed);
 }
 
 function toggleDetail(key){
@@ -1121,6 +1212,53 @@ async function removePhoto(key, pid){
 /* ═══════════════════════════════════════════════════════════
    View: punch report
    ═══════════════════════════════════════════════════════════ */
+
+/* Failed items grouped by room — `wantFixed` picks which half you get. */
+async function reportBlocks(u, wantFixed){
+  const blocks = [];
+  for(let ri = 0; ri < ROOMS.length; ri++){
+    const room = ROOMS[ri];
+    const rows = [];
+    for(let ci = 0; ci < room.cats.length; ci++){
+      const cat = room.cats[ci];
+      for(let ii = 0; ii < cat.items.length; ii++){
+        const rec = u.items[itemKey(ri, ci, ii)];
+        if(!rec || rec.status !== 'fail') continue;
+        if(!!rec.fixed !== !!wantFixed) continue;
+
+        let photos = '';
+        if(rec.photos && rec.photos.length){
+          const urls = [];
+          for(const pid of rec.photos){
+            const url = await photoURL(pid);
+            if(url) urls.push('<img src="'+url+'" alt="Punch photo" />');
+          }
+          if(urls.length) photos = '<div class="rep-photos">'+urls.join('')+'</div>';
+        }
+
+        const fixLine = wantFixed
+          ? '<div class="rep-fixnote">✓ Fixed'
+            + (rec.fixedBy ? ' by '+esc(rec.fixedBy) : '')
+            + (rec.fixedAt ? ' · '+esc(fmtDate(rec.fixedAt)) : '')+'</div>'
+          : '';
+
+        rows.push('<div class="rep-item'+(wantFixed?' fixed':'')+'">'
+          + '<div class="ri-t"><span class="dot">'+(wantFixed?'✓':'✕')+'</span>'
+          +   '<span>'+esc(cat.items[ii])+'</span></div>'
+          + (rec.note ? '<div class="ri-n">'+esc(rec.note)+'</div>' : '')
+          + fixLine
+          + photos
+          + '</div>');
+      }
+    }
+    if(rows.length){
+      blocks.push('<div class="rep-room"><h3>'+room.emoji+' '+esc(room.name)+'</h3>'
+        + '<div class="card">'+rows.join('')+'</div></div>');
+    }
+  }
+  return blocks;
+}
+
 async function openReport(){
   const u  = unit();
   if(!u){ renderUnits(); return; }
@@ -1133,50 +1271,31 @@ async function openReport(){
     +   esc(fmtDate(u.updatedAt || Date.now()))+'</div>'
     + '<div class="rl" style="margin-top:10px">'
     +   '<b style="color:var(--sage-dark)">'+st.pass+' passed</b> · '
-    +   '<b style="color:var(--coral-dark)">'+st.fail+' failed</b> · '
+    +   '<b style="color:var(--coral-dark)">'+st.fail+' still to fix</b> · '
+    +   '<b style="color:var(--fixed-dark)">'+st.fixed+' fixed</b> · '
     +   st.left+' not checked</div>';
 
   const body = document.getElementById('repBody');
-  const blocks = [];
 
-  for(let ri = 0; ri < ROOMS.length; ri++){
-    const room = ROOMS[ri];
-    const rows = [];
-    for(let ci = 0; ci < room.cats.length; ci++){
-      const cat = room.cats[ci];
-      for(let ii = 0; ii < cat.items.length; ii++){
-        const rec = u.items[itemKey(ri, ci, ii)];
-        if(!rec || rec.status !== 'fail') continue;
+  // Two passes: what still needs doing, then what has already been closed out
+  const openBlocks  = await reportBlocks(u, false);
+  const fixedBlocks = await reportBlocks(u, true);
 
-        let photos = '';
-        if(rec.photos && rec.photos.length){
-          const urls = [];
-          for(const pid of rec.photos){
-            const url = await photoURL(pid);
-            if(url) urls.push('<img src="'+url+'" alt="Punch photo" />');
-          }
-          if(urls.length) photos = '<div class="rep-photos">'+urls.join('')+'</div>';
-        }
-
-        rows.push('<div class="rep-item">'
-          + '<div class="ri-t"><span class="dot">✕</span><span>'+esc(cat.items[ii])+'</span></div>'
-          + (rec.note ? '<div class="ri-n">'+esc(rec.note)+'</div>' : '')
-          + photos
-          + '</div>');
-      }
-    }
-    if(rows.length){
-      blocks.push('<div class="rep-room"><h3>'+room.emoji+' '+esc(room.name)+'</h3>'
-        + '<div class="card">'+rows.join('')+'</div></div>');
-    }
-  }
-
-  if(!blocks.length){
-    body.innerHTML = '<div class="card empty"><span class="ic">✅</span>'
-      + 'No failed items'+(st.left ? ' so far — '+st.left+' still unchecked.' : '. This unit is clear.')+'</div>';
+  let html = '';
+  if(openBlocks.length){
+    html += '<div class="section-label" style="margin-top:22px">Still to fix</div>'
+          + openBlocks.join('');
   } else {
-    body.innerHTML = blocks.join('');
+    html += '<div class="card empty" style="margin-top:22px"><span class="ic">✅</span>'
+          + (st.fixed ? 'Nothing left to fix — all '+st.fixed+' punch items are closed out.'
+                      : 'No failed items')
+          + (st.left ? ' '+st.left+' still unchecked.' : '')
+          + '</div>';
   }
+  if(fixedBlocks.length){
+    html += '<div class="section-label">Fixed</div>' + fixedBlocks.join('');
+  }
+  body.innerHTML = html;
 
   setView('report');
 }
@@ -1193,15 +1312,17 @@ function buildSummary(){
   if(u.inspector) lines.push('Inspected by: ' + u.inspector);
   lines.push(fmtDate(u.updatedAt || Date.now()));
   lines.push('');
-  lines.push(st.pass + ' passed · ' + st.fail + ' failed · ' + st.left + ' not checked');
+  lines.push(st.pass + ' passed · ' + st.fail + ' still to fix · '
+           + st.fixed + ' fixed · ' + st.left + ' not checked');
 
+  // Only what's still open — this is what gets sent to a sub
   let any = false;
   ROOMS.forEach(function(room, ri){
     const rows = [];
     room.cats.forEach(function(cat, ci){
       cat.items.forEach(function(text, ii){
         const rec = u.items[itemKey(ri, ci, ii)];
-        if(!rec || rec.status !== 'fail') return;
+        if(!rec || rec.status !== 'fail' || rec.fixed) return;
         let line = '  • ' + text;
         if(rec.note) line += '\n      Note: ' + rec.note;
         if(rec.photos && rec.photos.length){
@@ -1221,7 +1342,8 @@ function buildSummary(){
 
   if(!any){
     lines.push('');
-    lines.push('No failed items.');
+    lines.push(st.fixed ? 'Nothing open — all ' + st.fixed + ' punch items are fixed.'
+                        : 'No failed items.');
   }
   return lines.join('\n');
 }
