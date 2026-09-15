@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#f5f1ea" />
+<title>Punch Out · Rosemary Villas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#f5f1ea; --surface:#faf8f3; --surface2:#f2ede3; --surface3:#ebe6db;
+  --border:#cdcaba; --border-soft:#ddd8cb;
+  --text:#1a1f1c; --text-dim:#2f3a33; --text-dimmer:#5e6e63;
+  --gold:#8c7342; --sage:#5a8a5e; --sage-dark:#47704b; --coral:#b24a3a; --coral-dark:#933a2d;
+  --shadow:0 1px 2px rgba(26,31,28,.06), 0 4px 14px rgba(26,31,28,.05);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.45; min-height:100vh;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+
+/* ── App shell ── */
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 96px}
+
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(245,241,234,.94);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border-soft);
+  padding-top:env(safe-area-inset-top);
+}
+.topbar-inner{
+  max-width:720px;margin:0 auto;padding:10px 16px;
+  display:flex;align-items:center;gap:10px;min-height:56px;
+}
+.back-btn{
+  display:none;align-items:center;justify-content:center;
+  width:38px;height:38px;flex:0 0 38px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border-soft);
+  font-size:18px;color:var(--text-dim);
+}
+.back-btn.on{display:flex}
+.topbar-title{flex:1;min-width:0}
+.topbar-title .t1{
+  font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-dimmer);
+}
+.topbar-title .t2{
+  font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;
+  line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.unit-chip{
+  flex:0 0 auto;font-size:12px;font-weight:600;letter-spacing:.04em;
+  background:var(--surface2);border:1px solid var(--border);
+  padding:6px 11px;border-radius:999px;color:var(--text-dim);
+}
+
+/* ── Generic bits ── */
+.section-label{
+  font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text-dimmer);margin:28px 0 12px;
+}
+.card{
+  background:var(--surface);border:1px solid var(--border-soft);
+  border-radius:14px;box-shadow:var(--shadow);
+}
+.muted{color:var(--text-dimmer);font-size:13px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 18px;border-radius:11px;font-size:15px;font-weight:600;
+  background:var(--sage);color:#fff;width:100%;
+  transition:background .15s,opacity .15s;
+}
+.btn:active{opacity:.85}
+.btn.ghost{background:var(--surface);color:var(--text-dim);border:1px solid var(--border)}
+.btn.danger{background:none;color:var(--coral);border:1px solid var(--border)}
+.btn.sm{padding:10px 14px;font-size:13.5px;width:auto}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row-btns .btn{flex:1 1 160px;width:auto}
+
+input[type=text],input[type=search],textarea{
+  width:100%;padding:13px 14px;border:1px solid var(--border);
+  border-radius:10px;background:var(--surface);font-size:16px;outline:none;
+}
+input:focus,textarea:focus{border-color:var(--sage)}
+textarea{resize:vertical;min-height:70px;line-height:1.45}
+
+/* ── Progress ── */
+.pbar{height:6px;border-radius:999px;background:var(--surface3);overflow:hidden;display:flex}
+.pbar i{display:block;height:100%}
+.pbar i.ok{background:var(--sage)}
+.pbar i.bad{background:var(--coral)}
+
+/* ── Units view ── */
+.hero{text-align:center;padding:26px 0 6px}
+.hero img{width:150px;height:auto;display:block;margin:0 auto 10px}
+.hero .sub{
+  font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--text-dimmer);
+}
+.newunit{padding:16px;display:flex;gap:10px;align-items:stretch;margin-top:8px}
+.newunit input{flex:1}
+.newunit .btn{width:auto;flex:0 0 auto;padding:13px 20px}
+
+.unit-row{
+  display:flex;align-items:center;gap:14px;padding:16px;
+  border-bottom:1px solid var(--border-soft);text-align:left;width:100%;
+}
+.unit-row:last-child{border-bottom:none}
+.unit-row .grow{flex:1;min-width:0}
+.unit-row .num{font-size:17px;font-weight:600;letter-spacing:.02em}
+.unit-row .meta{font-size:12px;color:var(--text-dimmer);margin:3px 0 8px}
+.pill{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:3px 9px;border-radius:999px;
+}
+.pill.bad{background:#f7e3df;color:var(--coral-dark)}
+.pill.done{background:#e2eee3;color:var(--sage-dark)}
+.chev{color:var(--text-dimmer);font-size:19px;flex:0 0 auto}
+
+/* ── Rooms view ── */
+.summary{padding:18px}
+.summary .big{display:flex;gap:10px;margin-bottom:14px}
+.stat{flex:1;background:var(--surface2);border-radius:11px;padding:12px 10px;text-align:center}
+.stat b{display:block;font-size:22px;font-weight:700;line-height:1.1}
+.stat span{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dimmer)}
+.stat.ok b{color:var(--sage-dark)}
+.stat.bad b{color:var(--coral-dark)}
+.inspector{margin-top:14px}
+.inspector label{
+  display:block;font-size:10px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-dimmer);margin-bottom:6px;
+}
+
+.room-row{
+  display:flex;align-items:center;gap:14px;padding:15px 16px;
+  border-bottom:1px solid var(--border-soft);text-align:left;width:100%;
+}
+.room-row:last-child{border-bottom:none}
+.room-emoji{font-size:22px;flex:0 0 auto;width:28px;text-align:center}
+.room-row .grow{flex:1;min-width:0}
+.room-row .rname{font-size:15px;font-weight:600}
+.room-row .rmeta{font-size:12px;color:var(--text-dimmer);margin:2px 0 7px}
+.room-row.complete .rname{color:var(--sage-dark)}
+
+/* ── Room detail ── */
+.roomhead{padding:16px 16px 14px}
+.roomhead .rh-top{display:flex;align-items:baseline;gap:9px;margin-bottom:4px}
+.roomhead h2{font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:600;line-height:1.1}
+.roomhead .rh-count{font-size:12.5px;color:var(--text-dimmer);margin-bottom:10px}
+
+.cat{margin-top:22px}
+.cat h3{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:9px;padding-left:2px;
+}
+.item{
+  border-bottom:1px solid var(--border-soft);padding:14px 16px;
+}
+.item:last-child{border-bottom:none}
+.item.is-fail{background:#fdf6f4}
+.item.is-pass{background:#f7faf7}
+.item-text{font-size:14.5px;line-height:1.4;margin-bottom:11px}
+.item.is-pass .item-text{color:var(--text-dim)}
+
+.seg{display:flex;gap:8px}
+.seg button{
+  flex:1;padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--surface);font-size:14px;font-weight:600;color:var(--text-dimmer);
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:all .12s;
+}
+.seg button .ic{font-size:15px;line-height:1}
+.seg button.on-pass{background:var(--sage);border-color:var(--sage);color:#fff}
+.seg button.on-fail{background:var(--coral);border-color:var(--coral);color:#fff}
+.seg .note-toggle{flex:0 0 52px}
+.seg .note-toggle.has{background:var(--surface3);border-color:var(--border);color:var(--gold)}
+
+.detail{margin-top:11px;display:none}
+.detail.open{display:block}
+.detail textarea{background:var(--surface)}
+.photo-bar{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.addphoto{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:66px;height:66px;border-radius:10px;border:1.5px dashed var(--border);
+  background:var(--surface);color:var(--text-dimmer);font-size:9.5px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;flex:0 0 auto;
+}
+.addphoto .ic{font-size:19px}
+.addphoto input{display:none}
+.thumb{
+  position:relative;width:66px;height:66px;border-radius:10px;overflow:hidden;
+  border:1px solid var(--border);flex:0 0 auto;background:var(--surface3);
+}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{
+  position:absolute;top:2px;right:2px;width:21px;height:21px;border-radius:50%;
+  background:rgba(26,31,28,.72);color:#fff;font-size:12px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.roomnav{display:flex;gap:10px;margin-top:26px}
+.roomnav .btn{flex:1}
+
+/* ── Report ── */
+.rep-head{padding:20px 18px}
+.rep-head h2{font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:600;line-height:1.15}
+.rep-head .rl{font-size:13px;color:var(--text-dimmer);margin-top:5px}
+.rep-room{margin-top:24px}
+.rep-room h3{
+  font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:9px;
+}
+.rep-item{padding:13px 16px;border-bottom:1px solid var(--border-soft)}
+.rep-item:last-child{border-bottom:none}
+.rep-item .ri-t{font-size:14.5px;line-height:1.4;display:flex;gap:9px}
+.rep-item .ri-t .dot{color:var(--coral);font-weight:700;flex:0 0 auto}
+.rep-item .ri-n{
+  font-size:13.5px;color:var(--text-dim);margin:8px 0 0 18px;padding:9px 12px;
+  background:var(--surface2);border-radius:9px;border-left:3px solid var(--gold);
+}
+.rep-photos{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0 18px}
+.rep-photos img{width:104px;height:104px;object-fit:cover;border-radius:9px;border:1px solid var(--border)}
+.empty{padding:34px 20px;text-align:center;color:var(--text-dimmer);font-size:14px}
+.empty .ic{font-size:34px;display:block;margin-bottom:10px}
+
+.footnote{text-align:center;font-size:11px;color:var(--text-dimmer);margin-top:32px;letter-spacing:.06em}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);
+  background:var(--text);color:var(--surface);padding:11px 18px;border-radius:999px;
+  font-size:13.5px;font-weight:500;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:300;max-width:90vw;text-align:center;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+.view{display:none}
+.view.on{display:block}
+
+/* ── Print ── */
+@media print{
+  body{background:#fff}
+  .topbar,.no-print{display:none !important}
+  .wrap{max-width:none;padding:0}
+  .card{border:none;box-shadow:none;border-radius:0}
+  .rep-item{break-inside:avoid;page-break-inside:avoid}
+  .rep-room{break-inside:avoid-page}
+  .rep-photos img{width:150px;height:150px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="topbar-title">
+      <div class="t1" id="tbKicker">Rosemary Villas</div>
+      <div class="t2" id="tbTitle">Punch Out</div>
+    </div>
+    <span class="unit-chip" id="tbUnit" style="display:none"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ══ VIEW: UNITS ══ -->
+  <section class="view on" id="view-units">
+    <div class="hero">
+      <img src="rosemary-logo.jpg" alt="Rosemary Villas at Chenal" />
+      <div class="sub">Punch Out Walkthrough</div>
+    </div>
+
+    <div class="section-label">Start a unit</div>
+    <div class="card newunit">
+      <input type="text" id="newUnitInput" placeholder="Unit number (e.g. 18129)"
+             inputmode="numeric" autocomplete="off" />
+      <button class="btn" onclick="createUnit()">Start</button>
+    </div>
+
+    <div class="section-label">In progress</div>
+    <div class="card" id="unitList"></div>
+
+    <div class="footnote">Alberius Operations · Internal</div>
+  </section>
+
+  <!-- ══ VIEW: ROOMS ══ -->
+  <section class="view" id="view-rooms">
+    <div class="card summary" id="unitSummary"></div>
+
+    <div class="section-label">Rooms</div>
+    <div class="card" id="roomList"></div>
+
+    <div class="row-btns no-print">
+      <button class="btn" onclick="openReport()">Punch Report</button>
+      <button class="btn ghost" onclick="shareSummary()">Share Summary</button>
+    </div>
+    <div class="row-btns no-print">
+      <button class="btn danger" onclick="deleteUnit()">Delete this unit</button>
+    </div>
+
+    <div class="footnote">Saved on this phone automatically</div>
+  </section>
+
+  <!-- ══ VIEW: ROOM DETAIL ══ -->
+  <section class="view" id="view-room">
+    <div class="card roomhead" id="roomHead"></div>
+    <div id="roomBody"></div>
+    <div class="roomnav no-print" id="roomNav"></div>
+  </section>
+
+  <!-- ══ VIEW: REPORT ══ -->
+  <section class="view" id="view-report">
+    <div class="card rep-head" id="repHead"></div>
+    <div id="repBody"></div>
+    <div class="row-btns no-print">
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn ghost" onclick="shareSummary()">Share Summary</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Punch list definition — Rosemary Villas at Chenal
+   Transcribed from the printed CM punch list.
+   ═══════════════════════════════════════════════════════════ */
+const ROOMS = [
+  { id:'guest-bed', name:'Guest Bedroom', emoji:'🛏️', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Verify all recessed lights (cans) are operational and consistent in color',
+      'Verify all light switches are functioning properly',
+      'Test all electrical outlets for proper function',
+      'Test ceiling fan operation at all speeds' ]},
+    { name:'Doors, Windows & Hardware', items:[
+      'Inspect door hardware, including knobs and door stops',
+      'Confirm at least one window is operable',
+      'Verify window blinds function correctly' ]},
+    { name:'Paint, Trim & Finish', items:[
+      'Inspect trim for paint cracks or deficiencies',
+      'Inspect walls for bowing or irregularities',
+      'Verify all wall paint touch-ups are complete' ]}
+  ]},
+
+  { id:'guest-bath', name:'Guest Bathroom', emoji:'🛁', cats:[
+    { name:'Electrical & Ventilation', items:[
+      'Verify all recessed lights (cans) are consistent in color',
+      'Test exhaust fan for proper operation' ]},
+    { name:'Plumbing', items:[
+      'Test all plumbing fixtures for proper operation',
+      'Verify hot water is functional at all taps',
+      'Verify toilet is functioning properly' ]},
+    { name:'Cabinets & Hardware', items:[
+      'Verify all cabinets are fully painted and finished',
+      'Confirm all cabinets operate properly (open/close smoothly)',
+      'Inspect and verify cabinet hardware is installed correctly',
+      'Verify toilet paper holder is installed securely',
+      'Remove clips from mirrors' ]},
+    { name:'Tile & Finish', items:[
+      'Inspect trim for required paint touch-ups',
+      'Inspect tile for missing or incomplete grout',
+      'Verify all tile transitions are properly installed' ]}
+  ]},
+
+  { id:'foyer', name:'Foyer', emoji:'🚪', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Verify all recessed lights (cans) are operational and consistent in color',
+      'Test hanging light fixture for proper operation',
+      'Verify all light switches are functioning properly' ]},
+    { name:'Paint & Finish', items:[
+      'Inspect for any paint touch-ups needed' ]}
+  ]},
+
+  { id:'flex', name:'Flex Room', emoji:'🧩', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Verify all recessed lights (4 cans) are operational and consistent in color' ]},
+    { name:'Doors & Mechanical', items:[
+      'Test ceiling fan for proper operation',
+      'Test sliding door for proper operation',
+      'Inspect sliding door for paint or finish touch-ups' ]},
+    { name:'Paint & Finish', items:[
+      'Inspect trim for paint touch-ups',
+      'Inspect walls for bowing or irregularities',
+      'Verify all wall paint touch-ups are complete' ]}
+  ]},
+
+  { id:'kitchen', name:'Kitchen', emoji:'🍽️', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Set backsplash lights (far right, 1 click left) and verify operation',
+      'Verify all lights are operational and consistent in color',
+      'Verify all light switches function correctly' ]},
+    { name:'Appliances', items:[
+      'Set correct time on refrigerator',
+      'Set correct time on dishwasher',
+      'Set correct time on microwave',
+      'Set correct time on oven',
+      'Remove all packaging from appliances',
+      'Verify dishwasher runs properly',
+      'Verify refrigerator is cooling properly',
+      'Verify vent hood operates properly',
+      'Verify all appliances are operational' ]},
+    { name:'Cabinets & Countertops', items:[
+      'Check all cabinets operate correctly',
+      'Check cabinet alignment (doors even)',
+      'Verify cabinet hardware is installed and tight',
+      'Check cabinets for paint touch-ups',
+      'Inspect countertops for damage or glue residue' ]},
+    { name:'Plumbing & Gas', items:[
+      'Verify sink operates properly (hot/cold)',
+      'Check for leaks under sink',
+      'Verify garbage disposal works properly',
+      'Verify gas stove operates properly',
+      'Check for gas leaks' ]},
+    { name:'Tile, Flooring & Finish', items:[
+      'Check backsplash for missing grout or gaps',
+      'Inspect flooring for damage' ]}
+  ]},
+
+  { id:'laundry', name:'Laundry Room', emoji:'🧺', cats:[
+    { name:'Cabinets & Finish', items:[
+      'Inspect all cabinets for required paint touch-ups',
+      'Confirm all cabinets operate properly (open/close smoothly)' ]},
+    { name:'HVAC & Plumbing', items:[
+      'Verify HVAC vent is installed and unobstructed',
+      'Test sink for proper plumbing function' ]},
+    { name:'Doors & Lighting', items:[
+      'Verify pocket door operates smoothly and latches properly',
+      'Confirm recessed lights (cans) are consistent in color' ]}
+  ]},
+
+  { id:'living', name:'Living Room', emoji:'🛋️', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Verify all recessed lights (cans) are operational and consistent in color',
+      'Test ceiling fan for proper operation',
+      'Test hanging light fixture for proper operation',
+      'Test all electrical outlets for proper function',
+      'Verify TV outlet/connection is operational',
+      'Test floor outlet for proper function' ]},
+    { name:'Fireplace & Doors', items:[
+      'Verify fireplace is installed and functioning properly',
+      'Verify double wide doors operate smoothly and latch properly' ]}
+  ]},
+
+  { id:'master-bed', name:'Master Bedroom', emoji:'🛏️', cats:[
+    { name:'Electrical & Lighting', items:[
+      'Verify all recessed lights (4 cans) are operational and consistent in color',
+      'Test ceiling fan for proper operation',
+      'Test all electrical outlets for proper function' ]},
+    { name:'Doors, Windows & Hardware', items:[
+      'Verify windows open properly',
+      'Check blinds for proper operation',
+      'Inspect and verify all door hardware is installed correctly' ]},
+    { name:'Paint, Trim & Finish', items:[
+      'Inspect walls for bowing or irregularities',
+      'Verify all paint touch-ups are complete',
+      'Inspect installation of quarter round trim',
+      'Verify all cabinetry is fully painted and finished' ]}
+  ]},
+
+  { id:'master-bath', name:'Master Bathroom', emoji:'🚿', cats:[
+    { name:'Electrical & Ventilation', items:[
+      'Verify all recessed lights (cans) are operational and consistent in color',
+      'Test exhaust fan for proper operation' ]},
+    { name:'Plumbing & Fixtures', items:[
+      'Verify all plumbing fixtures and hardware are installed',
+      'Test all plumbing fixtures for proper water flow and operation',
+      'Verify toilet is functioning properly' ]},
+    { name:'Shower, Glass & Mirrors', items:[
+      'Confirm glass shower door operates smoothly and seals properly',
+      'Confirm mirrors are installed securely and aligned properly' ]},
+    { name:'Tile & Finish', items:[
+      'Inspect tile installation and grout for completeness and quality',
+      'Inspect countertops for residue or installation debris' ]},
+    { name:'Hardware', items:[
+      'Verify toilet paper holder is installed properly' ]}
+  ]},
+
+  { id:'master-closet', name:'Master Closet', emoji:'👔', cats:[
+    { name:'Hardware & Shelving', items:[
+      'Verify all closet hardware is installed',
+      'Verify seasonal rods are installed',
+      'Verify all hardware is secure and aligned properly' ]},
+    { name:'Paint & Finish', items:[
+      'Inspect for required paint touch-ups',
+      'Verify installation of quarter round trim' ]}
+  ]}
+];
+
+/* Stable key for every checklist item: room.category.index */
+function itemKey(roomIdx, catIdx, itemIdx){
+  return ROOMS[roomIdx].id + '.' + catIdx + '.' + itemIdx;
+}
+const TOTAL_ITEMS = ROOMS.reduce((n,r)=> n + r.cats.reduce((m,c)=> m + c.items.length, 0), 0);
+
+/* ═══════════════════════════════════════════════════════════
+   Storage — checklist state in localStorage, photos in IndexedDB
+   ═══════════════════════════════════════════════════════════ */
+const LS_KEY = 'rv_punch_v1';
+let store = { units:{} };
+
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && typeof parsed === 'object' && parsed.units) store = parsed;
+    }
+  }catch(e){ /* corrupt or blocked storage — start clean */ }
+}
+let saveTimer = null;
+function saveStore(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(store)); }
+    catch(e){ toast('Could not save — phone storage may be full'); }
+  }, 180);
+}
+
+/* ── IndexedDB for photo blobs ── */
+let dbPromise = null;
+function openDB(){
+  if(!dbPromise){
+    dbPromise = new Promise(function(resolve, reject){
+      const req = indexedDB.open('rv_punch_photos', 1);
+      req.onupgradeneeded = function(){ req.result.createObjectStore('photos'); };
+      req.onsuccess = function(){ resolve(req.result); };
+      req.onerror   = function(){ reject(req.error); };
+    });
+  }
+  return dbPromise;
+}
+async function photoPut(id, blob){
+  const db = await openDB();
+  return new Promise(function(resolve, reject){
+    const tx = db.transaction('photos','readwrite');
+    tx.objectStore('photos').put(blob, id);
+    tx.oncomplete = function(){ resolve(); };
+    tx.onerror    = function(){ reject(tx.error); };
+  });
+}
+async function photoGet(id){
+  const db = await openDB();
+  return new Promise(function(resolve, reject){
+    const tx = db.transaction('photos','readonly');
+    const rq = tx.objectStore('photos').get(id);
+    rq.onsuccess = function(){ resolve(rq.result || null); };
+    rq.onerror   = function(){ reject(rq.error); };
+  });
+}
+async function photoDel(id){
+  const db = await openDB();
+  return new Promise(function(resolve, reject){
+    const tx = db.transaction('photos','readwrite');
+    tx.objectStore('photos').delete(id);
+    tx.oncomplete = function(){ resolve(); };
+    tx.onerror    = function(){ reject(tx.error); };
+  });
+}
+
+/* Object-URL cache so the same photo isn't decoded repeatedly */
+const urlCache = {};
+async function photoURL(id){
+  if(urlCache[id]) return urlCache[id];
+  const blob = await photoGet(id);
+  if(!blob) return null;
+  urlCache[id] = URL.createObjectURL(blob);
+  return urlCache[id];
+}
+
+/* Shrink a camera photo so a full unit's worth fits comfortably on the phone */
+async function shrinkImage(file, maxEdge, quality){
+  maxEdge = maxEdge || 1400;
+  quality = quality || 0.72;
+  let src;
+  if(typeof createImageBitmap === 'function'){
+    try{ src = await createImageBitmap(file, { imageOrientation:'from-image' }); }
+    catch(e){ src = null; }
+  }
+  if(!src){
+    src = await new Promise(function(resolve, reject){
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload  = function(){ URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('Unreadable image')); };
+      img.src = url;
+    });
+  }
+  const w0 = src.width, h0 = src.height;
+  const scale = Math.min(1, maxEdge / Math.max(w0, h0));
+  const w = Math.max(1, Math.round(w0 * scale));
+  const h = Math.max(1, Math.round(h0 * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(src, 0, 0, w, h);
+  if(src.close) src.close();
+  return new Promise(function(resolve, reject){
+    canvas.toBlob(function(blob){
+      blob ? resolve(blob) : reject(new Error('Could not process photo'));
+    }, 'image/jpeg', quality);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Unit helpers
+   ═══════════════════════════════════════════════════════════ */
+let currentUnit = null;   // unit number string
+let currentRoom = 0;      // index into ROOMS
+
+function unit(){ return store.units[currentUnit]; }
+
+function touchUnit(){
+  const u = unit();
+  if(u){ u.updatedAt = Date.now(); }
+  saveStore();
+}
+
+function getRec(key){
+  const u = unit();
+  if(!u) return null;
+  if(!u.items[key]) u.items[key] = { status:null, note:'', photos:[] };
+  return u.items[key];
+}
+
+function unitStats(u){
+  let pass = 0, fail = 0;
+  for(const k in u.items){
+    const s = u.items[k].status;
+    if(s === 'pass') pass++;
+    else if(s === 'fail') fail++;
+  }
+  return { pass:pass, fail:fail, done:pass+fail, total:TOTAL_ITEMS, left:TOTAL_ITEMS-pass-fail };
+}
+
+function roomStats(u, roomIdx){
+  const room = ROOMS[roomIdx];
+  let pass = 0, fail = 0, total = 0;
+  room.cats.forEach(function(cat, ci){
+    cat.items.forEach(function(_, ii){
+      total++;
+      const rec = u.items[itemKey(roomIdx, ci, ii)];
+      if(rec && rec.status === 'pass') pass++;
+      else if(rec && rec.status === 'fail') fail++;
+    });
+  });
+  return { pass:pass, fail:fail, done:pass+fail, total:total };
+}
+
+function progressBar(pass, fail, total){
+  const p = total ? (pass/total*100) : 0;
+  const f = total ? (fail/total*100) : 0;
+  return '<div class="pbar"><i class="ok" style="width:'+p.toFixed(2)+'%"></i>'
+       + '<i class="bad" style="width:'+f.toFixed(2)+'%"></i></div>';
+}
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})
+       + ' · ' + d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.classList.remove('on'); }, 2200);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Navigation
+   ═══════════════════════════════════════════════════════════ */
+let view = 'units';
+
+function setView(name){
+  view = name;
+  ['units','rooms','room','report'].forEach(function(v){
+    document.getElementById('view-'+v).classList.toggle('on', v === name);
+  });
+  document.getElementById('backBtn').classList.toggle('on', name !== 'units');
+  const chip = document.getElementById('tbUnit');
+  if(currentUnit && name !== 'units'){
+    chip.textContent = 'Unit ' + currentUnit;
+    chip.style.display = '';
+  } else {
+    chip.style.display = 'none';
+  }
+  const kicker = document.getElementById('tbKicker');
+  const title  = document.getElementById('tbTitle');
+  if(name === 'units'){       kicker.textContent = 'Rosemary Villas'; title.textContent = 'Punch Out'; }
+  else if(name === 'rooms'){  kicker.textContent = 'Walkthrough';     title.textContent = 'Rooms'; }
+  else if(name === 'room'){   kicker.textContent = 'Walkthrough';     title.textContent = ROOMS[currentRoom].name; }
+  else {                      kicker.textContent = 'Punch Out';       title.textContent = 'Report'; }
+  window.scrollTo(0, 0);
+}
+
+function goBack(){
+  if(view === 'room' || view === 'report') renderRooms();
+  else if(view === 'rooms'){ currentUnit = null; renderUnits(); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   View: units
+   ═══════════════════════════════════════════════════════════ */
+function renderUnits(){
+  const list = document.getElementById('unitList');
+  const nums = Object.keys(store.units).sort(function(a,b){
+    return (store.units[b].updatedAt||0) - (store.units[a].updatedAt||0);
+  });
+
+  if(!nums.length){
+    list.innerHTML = '<div class="empty"><span class="ic">🏠</span>'
+      + 'No units started yet.<br>Enter a unit number above to begin.</div>';
+  } else {
+    list.innerHTML = nums.map(function(n){
+      const u  = store.units[n];
+      const st = unitStats(u);
+      const complete = st.left === 0;
+      let badge = '';
+      if(st.fail)      badge = '<span class="pill bad">'+st.fail+' to fix</span>';
+      else if(complete) badge = '<span class="pill done">All clear</span>';
+      return '<button class="unit-row" onclick="openUnit(\''+esc(n)+'\')">'
+        + '<span class="grow">'
+        +   '<span class="num">Unit '+esc(n)+'</span>'
+        +   '<div class="meta">'+st.done+' of '+st.total+' checked'
+        +     (u.updatedAt ? ' · '+esc(fmtDate(u.updatedAt)) : '')+'</div>'
+        +   progressBar(st.pass, st.fail, st.total)
+        +   (badge ? '<div style="margin-top:8px">'+badge+'</div>' : '')
+        + '</span>'
+        + '<span class="chev">›</span>'
+        + '</button>';
+    }).join('');
+  }
+  setView('units');
+}
+
+function createUnit(){
+  const input = document.getElementById('newUnitInput');
+  const num = input.value.trim();
+  if(!num){ toast('Enter a unit number first'); input.focus(); return; }
+  if(!store.units[num]){
+    store.units[num] = {
+      unit: num,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      inspector: defaultInspector(),
+      items: {}
+    };
+    saveStore();
+  }
+  input.value = '';
+  openUnit(num);
+}
+
+function openUnit(num){
+  if(!store.units[num]) return;
+  currentUnit = num;
+  renderRooms();
+}
+
+function deleteUnit(){
+  const num = currentUnit;
+  if(!num) return;
+  if(!confirm('Delete Unit '+num+' and all of its notes and photos?\n\nThis cannot be undone.')) return;
+  const u = store.units[num];
+  // Clean up any stored photos for this unit
+  for(const k in u.items){
+    (u.items[k].photos || []).forEach(function(pid){
+      photoDel(pid).catch(function(){});
+      if(urlCache[pid]){ URL.revokeObjectURL(urlCache[pid]); delete urlCache[pid]; }
+    });
+  }
+  delete store.units[num];
+  saveStore();
+  currentUnit = null;
+  toast('Unit '+num+' deleted');
+  renderUnits();
+}
+
+/* Pre-fill the inspector from the hub sign-in when we have it */
+function defaultInspector(){
+  try{
+    const raw = sessionStorage.getItem('rv_session');
+    if(raw){
+      const s = JSON.parse(raw);
+      if(s && (s.username || s.name)) return s.username || s.name;
+    }
+  }catch(e){}
+  return localStorage.getItem('rv_punch_inspector') || '';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   View: rooms
+   ═══════════════════════════════════════════════════════════ */
+function renderRooms(){
+  const u  = unit();
+  if(!u){ renderUnits(); return; }
+  const st = unitStats(u);
+
+  document.getElementById('unitSummary').innerHTML =
+      '<div class="big">'
+    +   '<div class="stat ok"><b>'+st.pass+'</b><span>Passed</span></div>'
+    +   '<div class="stat bad"><b>'+st.fail+'</b><span>Failed</span></div>'
+    +   '<div class="stat"><b>'+st.left+'</b><span>Left</span></div>'
+    + '</div>'
+    + progressBar(st.pass, st.fail, st.total)
+    + '<div class="inspector no-print">'
+    +   '<label for="inspectorInput">Inspected by</label>'
+    +   '<input type="text" id="inspectorInput" placeholder="Your name" value="'+esc(u.inspector||'')+'" />'
+    + '</div>';
+
+  const insp = document.getElementById('inspectorInput');
+  insp.addEventListener('input', function(){
+    u.inspector = insp.value;
+    try{ localStorage.setItem('rv_punch_inspector', insp.value); }catch(e){}
+    touchUnit();
+  });
+
+  document.getElementById('roomList').innerHTML = ROOMS.map(function(room, idx){
+    const rs = roomStats(u, idx);
+    const complete = rs.done === rs.total;
+    let badge = '';
+    if(rs.fail)       badge = '<span class="pill bad">'+rs.fail+' failed</span>';
+    else if(complete) badge = '<span class="pill done">Complete</span>';
+    return '<button class="room-row'+(complete?' complete':'')+'" onclick="openRoom('+idx+')">'
+      + '<span class="room-emoji">'+room.emoji+'</span>'
+      + '<span class="grow">'
+      +   '<span class="rname">'+esc(room.name)+'</span>'
+      +   '<div class="rmeta">'+rs.done+' of '+rs.total+' checked</div>'
+      +   progressBar(rs.pass, rs.fail, rs.total)
+      +   (badge ? '<div style="margin-top:7px">'+badge+'</div>' : '')
+      + '</span>'
+      + '<span class="chev">›</span>'
+      + '</button>';
+  }).join('');
+
+  setView('rooms');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   View: room detail
+   ═══════════════════════════════════════════════════════════ */
+function openRoom(idx){
+  currentRoom = idx;
+  renderRoom();
+}
+
+function renderRoom(){
+  const u = unit();
+  if(!u){ renderUnits(); return; }
+  const room = ROOMS[currentRoom];
+  const rs   = roomStats(u, currentRoom);
+
+  document.getElementById('roomHead').innerHTML =
+      '<div class="rh-top"><span style="font-size:24px">'+room.emoji+'</span>'
+    + '<h2>'+esc(room.name)+'</h2></div>'
+    + '<div class="rh-count">'+rs.done+' of '+rs.total+' checked'
+    + (rs.fail ? ' · <span style="color:var(--coral)">'+rs.fail+' failed</span>' : '')+'</div>'
+    + progressBar(rs.pass, rs.fail, rs.total);
+
+  document.getElementById('roomBody').innerHTML = room.cats.map(function(cat, ci){
+    const rows = cat.items.map(function(text, ii){
+      const key = itemKey(currentRoom, ci, ii);
+      const rec = u.items[key] || { status:null, note:'', photos:[] };
+      const hasDetail = !!(rec.note || (rec.photos && rec.photos.length));
+      const open = rec.status === 'fail' || hasDetail;
+      return '<div class="item'+(rec.status==='fail'?' is-fail':rec.status==='pass'?' is-pass':'')+'" id="item-'+esc(key)+'">'
+        + '<div class="item-text">'+esc(text)+'</div>'
+        + '<div class="seg">'
+        +   '<button class="'+(rec.status==='pass'?'on-pass':'')+'" onclick="setStatus(\''+esc(key)+'\',\'pass\')">'
+        +     '<span class="ic">✓</span> Pass</button>'
+        +   '<button class="'+(rec.status==='fail'?'on-fail':'')+'" onclick="setStatus(\''+esc(key)+'\',\'fail\')">'
+        +     '<span class="ic">✕</span> Fail</button>'
+        +   '<button class="note-toggle'+(hasDetail?' has':'')+'" onclick="toggleDetail(\''+esc(key)+'\')" '
+        +     'title="Note or photo" aria-label="Note or photo">📝</button>'
+        + '</div>'
+        + '<div class="detail'+(open?' open':'')+'" id="detail-'+esc(key)+'">'
+        +   '<textarea placeholder="What&#39;s wrong? Who needs to fix it?" '
+        +     'oninput="setNote(\''+esc(key)+'\', this.value)">'+esc(rec.note||'')+'</textarea>'
+        +   '<div class="photo-bar" id="photos-'+esc(key)+'">'
+        +     '<label class="addphoto"><span class="ic">📷</span>Photo'
+        +       '<input type="file" accept="image/*" capture="environment" '
+        +         'onchange="addPhoto(\''+esc(key)+'\', this)" /></label>'
+        +   '</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    return '<div class="cat"><h3>'+esc(cat.name)+'</h3><div class="card">'+rows+'</div></div>';
+  }).join('');
+
+  // Paint in existing photo thumbnails
+  room.cats.forEach(function(cat, ci){
+    cat.items.forEach(function(_, ii){
+      const key = itemKey(currentRoom, ci, ii);
+      const rec = u.items[key];
+      if(rec && rec.photos && rec.photos.length) renderThumbs(key);
+    });
+  });
+
+  const prev = currentRoom > 0 ? ROOMS[currentRoom-1] : null;
+  const next = currentRoom < ROOMS.length-1 ? ROOMS[currentRoom+1] : null;
+  document.getElementById('roomNav').innerHTML =
+      (prev ? '<button class="btn ghost" onclick="openRoom('+(currentRoom-1)+')">← '+esc(prev.name)+'</button>' : '')
+    + (next ? '<button class="btn" onclick="openRoom('+(currentRoom+1)+')">'+esc(next.name)+' →</button>'
+            : '<button class="btn" onclick="renderRooms()">Done · Back to rooms</button>');
+
+  setView('room');
+}
+
+function setStatus(key, status){
+  const rec = getRec(key);
+  rec.status = (rec.status === status) ? null : status;   // tap again to clear
+  touchUnit();
+
+  const el  = document.getElementById('item-'+key);
+  const btns = el.querySelectorAll('.seg button');
+  btns[0].className = rec.status === 'pass' ? 'on-pass' : '';
+  btns[1].className = rec.status === 'fail' ? 'on-fail' : '';
+  el.className = 'item' + (rec.status==='fail' ? ' is-fail' : rec.status==='pass' ? ' is-pass' : '');
+
+  // A failure always wants a note — open the box straight away
+  if(rec.status === 'fail'){
+    const d = document.getElementById('detail-'+key);
+    if(!d.classList.contains('open')){
+      d.classList.add('open');
+      const ta = d.querySelector('textarea');
+      if(ta) ta.focus();
+    }
+  }
+  updateRoomHeadCounts();
+}
+
+function updateRoomHeadCounts(){
+  const u  = unit();
+  const rs = roomStats(u, currentRoom);
+  const head = document.getElementById('roomHead');
+  const count = head.querySelector('.rh-count');
+  const bar   = head.querySelector('.pbar');
+  if(count) count.innerHTML = rs.done+' of '+rs.total+' checked'
+    + (rs.fail ? ' · <span style="color:var(--coral)">'+rs.fail+' failed</span>' : '');
+  if(bar) bar.outerHTML = progressBar(rs.pass, rs.fail, rs.total);
+}
+
+function toggleDetail(key){
+  document.getElementById('detail-'+key).classList.toggle('open');
+}
+
+function setNote(key, value){
+  const rec = getRec(key);
+  rec.note = value;
+  touchUnit();
+  const el = document.getElementById('item-'+key);
+  const tog = el.querySelector('.note-toggle');
+  const has = !!(rec.note || (rec.photos && rec.photos.length));
+  tog.classList.toggle('has', has);
+}
+
+async function addPhoto(key, input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file) return;
+  toast('Adding photo…');
+  try{
+    const blob = await shrinkImage(file);
+    const id   = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    await photoPut(id, blob);
+    const rec = getRec(key);
+    rec.photos.push(id);
+    touchUnit();
+    await renderThumbs(key);
+    const el = document.getElementById('item-'+key);
+    if(el) el.querySelector('.note-toggle').classList.add('has');
+    toast('Photo added');
+  }catch(err){
+    toast('Could not add that photo');
+  }
+}
+
+async function renderThumbs(key){
+  const bar = document.getElementById('photos-'+key);
+  if(!bar) return;
+  const rec = getRec(key);
+  // Remove existing thumbs, keep the "add" button
+  bar.querySelectorAll('.thumb').forEach(function(t){ t.remove(); });
+  const addBtn = bar.querySelector('.addphoto');
+  for(const pid of rec.photos){
+    const url = await photoURL(pid);
+    if(!url) continue;
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.innerHTML = '<img src="'+url+'" alt="Punch photo" />'
+      + '<button onclick="removePhoto(\''+key+'\',\''+pid+'\')" aria-label="Remove photo">×</button>';
+    bar.insertBefore(div, addBtn);
+  }
+}
+
+async function removePhoto(key, pid){
+  const rec = getRec(key);
+  rec.photos = rec.photos.filter(function(p){ return p !== pid; });
+  touchUnit();
+  try{ await photoDel(pid); }catch(e){}
+  if(urlCache[pid]){ URL.revokeObjectURL(urlCache[pid]); delete urlCache[pid]; }
+  await renderThumbs(key);
+  const el = document.getElementById('item-'+key);
+  if(el) el.querySelector('.note-toggle')
+          .classList.toggle('has', !!(rec.note || rec.photos.length));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   View: punch report
+   ═══════════════════════════════════════════════════════════ */
+async function openReport(){
+  const u  = unit();
+  if(!u){ renderUnits(); return; }
+  const st = unitStats(u);
+
+  document.getElementById('repHead').innerHTML =
+      '<h2>Punch Report · Unit '+esc(u.unit)+'</h2>'
+    + '<div class="rl">Rosemary Villas at Chenal</div>'
+    + '<div class="rl">'+(u.inspector ? 'Inspected by '+esc(u.inspector)+' · ' : '')
+    +   esc(fmtDate(u.updatedAt || Date.now()))+'</div>'
+    + '<div class="rl" style="margin-top:10px">'
+    +   '<b style="color:var(--sage-dark)">'+st.pass+' passed</b> · '
+    +   '<b style="color:var(--coral-dark)">'+st.fail+' failed</b> · '
+    +   st.left+' not checked</div>';
+
+  const body = document.getElementById('repBody');
+  const blocks = [];
+
+  for(let ri = 0; ri < ROOMS.length; ri++){
+    const room = ROOMS[ri];
+    const rows = [];
+    for(let ci = 0; ci < room.cats.length; ci++){
+      const cat = room.cats[ci];
+      for(let ii = 0; ii < cat.items.length; ii++){
+        const rec = u.items[itemKey(ri, ci, ii)];
+        if(!rec || rec.status !== 'fail') continue;
+
+        let photos = '';
+        if(rec.photos && rec.photos.length){
+          const urls = [];
+          for(const pid of rec.photos){
+            const url = await photoURL(pid);
+            if(url) urls.push('<img src="'+url+'" alt="Punch photo" />');
+          }
+          if(urls.length) photos = '<div class="rep-photos">'+urls.join('')+'</div>';
+        }
+
+        rows.push('<div class="rep-item">'
+          + '<div class="ri-t"><span class="dot">✕</span><span>'+esc(cat.items[ii])+'</span></div>'
+          + (rec.note ? '<div class="ri-n">'+esc(rec.note)+'</div>' : '')
+          + photos
+          + '</div>');
+      }
+    }
+    if(rows.length){
+      blocks.push('<div class="rep-room"><h3>'+room.emoji+' '+esc(room.name)+'</h3>'
+        + '<div class="card">'+rows.join('')+'</div></div>');
+    }
+  }
+
+  if(!blocks.length){
+    body.innerHTML = '<div class="card empty"><span class="ic">✅</span>'
+      + 'No failed items'+(st.left ? ' so far — '+st.left+' still unchecked.' : '. This unit is clear.')+'</div>';
+  } else {
+    body.innerHTML = blocks.join('');
+  }
+
+  setView('report');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Share — plain-text summary for text message or email
+   ═══════════════════════════════════════════════════════════ */
+function buildSummary(){
+  const u  = unit();
+  const st = unitStats(u);
+  const lines = [];
+  lines.push('PUNCH LIST — Unit ' + u.unit);
+  lines.push('Rosemary Villas at Chenal');
+  if(u.inspector) lines.push('Inspected by: ' + u.inspector);
+  lines.push(fmtDate(u.updatedAt || Date.now()));
+  lines.push('');
+  lines.push(st.pass + ' passed · ' + st.fail + ' failed · ' + st.left + ' not checked');
+
+  let any = false;
+  ROOMS.forEach(function(room, ri){
+    const rows = [];
+    room.cats.forEach(function(cat, ci){
+      cat.items.forEach(function(text, ii){
+        const rec = u.items[itemKey(ri, ci, ii)];
+        if(!rec || rec.status !== 'fail') return;
+        let line = '  • ' + text;
+        if(rec.note) line += '\n      Note: ' + rec.note;
+        if(rec.photos && rec.photos.length){
+          line += '\n      (' + rec.photos.length + ' photo'
+                + (rec.photos.length > 1 ? 's' : '') + ' in the app)';
+        }
+        rows.push(line);
+      });
+    });
+    if(rows.length){
+      any = true;
+      lines.push('');
+      lines.push(room.name.toUpperCase());
+      lines.push(rows.join('\n'));
+    }
+  });
+
+  if(!any){
+    lines.push('');
+    lines.push('No failed items.');
+  }
+  return lines.join('\n');
+}
+
+async function shareSummary(){
+  const u = unit();
+  if(!u) return;
+  const text = buildSummary();
+  if(navigator.share){
+    try{
+      await navigator.share({ title:'Punch List — Unit '+u.unit, text:text });
+      return;
+    }catch(e){
+      if(e && e.name === 'AbortError') return;   // user dismissed the sheet
+    }
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Summary copied to clipboard');
+  }catch(e){
+    window.prompt('Copy this summary:', text);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Boot
+   ═══════════════════════════════════════════════════════════ */
+loadStore();
+document.getElementById('newUnitInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') createUnit();
+});
+renderUnits();
+</script>
+</body>
+</html>

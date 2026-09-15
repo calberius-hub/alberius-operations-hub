@@ -11,6 +11,8 @@ A lightweight, Netlify-ready operations shell built with vanilla HTML, CSS, and 
 ## Pages
 
 - `index.html` — Dashboard with executive status cards and quick tiles
+- `punchlist.html` — Rosemary Villas punch-out walkthrough (phone-first; pass/fail,
+  notes and photos per item, saved on the device, printable punch report)
 - `files-records.html` — Latest reports, executive summary, issues queue
 - `rosemary-accounting.html` — Module shell with intake/routing/reports placeholder and migration note
 - `cra-accounting.html` — CRA placeholder linked from top nav
