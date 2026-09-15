@@ -45,7 +45,10 @@ export function mergeUnit(stored, incoming) {
     const b  = base.items[k];
     const at = Number(a.t) || 0;
     const bt = b ? (Number(b.t) || 0) : -1;
-    if (at >= bt) {
+    // Strictly newer only. A real edit always stamps a fresh t, so an equal
+    // stamp means "same edit, pushed again" — and taking it would let a client
+    // that doesn't know about a newer field quietly erase it on the way back.
+    if (at > bt) {
       base.items[k] = {
         status:  a.status === "pass" || a.status === "fail" ? a.status : null,
         note:    clean(a.note, MAX_NOTE_CHARS),
