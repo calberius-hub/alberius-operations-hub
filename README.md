@@ -59,13 +59,38 @@ with plain Node, no Netlify needed.
 Blob keys: `unit/<unitNumber>` (JSON record) and `photo/<photoId>` (base64
 data URI).
 
+### Item states
+
+An item is one of: unanswered, **passed**, **failed** (open), or
+**failed-then-fixed**. Marking something fixed never erases the failure — a
+punch list is a record of what went wrong as much as a list of what is left
+— it just stops counting as open work and records `fixedBy` / `fixedAt`.
+
+Consequently `fail` means **open failures only** everywhere in this codebase;
+fixed ones are counted separately. Clearing or flipping a failure retires its
+fixed state with it. Either side can close an item out: the managers on the
+phone, or the office from the dashboard.
+
 ### How two managers in one unit stay out of each other's way
 
 Every checklist item carries `t`, the moment it last changed. Both the phone
-and the server merge **per item, newest wins** — never per unit. So if Randy
-and Josh are both in 18129, each one's findings survive; whoever syncs last
-does not overwrite the other. This is the one invariant to preserve if the
-sync code is ever touched.
+and the server merge **per item, strictly-newer wins** — never per unit. So if
+Randy and Josh are both in 18129, each one's findings survive; whoever syncs
+last does not overwrite the other.
+
+Two rules hold this together. Break either and you get silent data loss:
+
+1. **Merge on a strictly newer stamp, never on an equal one.** A real edit
+   always stamps a fresh `t`, so an equal stamp means "the same edit, pushed
+   again". Accepting it lets a client that doesn't know about a field erase
+   that field on its way back to the server.
+2. **Copy the whole item record on the way in.** Both `mergeUnit` (server) and
+   `applyRemote` (phone) rebuild the item from an explicit field list. Add a
+   field to one and forget the other and it syncs one way only. That is
+   exactly how `fixed` once travelled up from a phone but never back down to
+   it, and how a dashboard fix got silently undone.
+
+Only real mutators may write `t`. Rendering must never touch it.
 
 ### Auth — read this before widening access
 
