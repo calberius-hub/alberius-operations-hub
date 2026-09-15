@@ -492,9 +492,16 @@ function applyRemote(remote, num){
   for(const k of Object.keys(rItems)){
     const r = rItems[k], l = local.items[k];
     if(!l || (r.t||0) > (l.t||0)){
+      // Copy the whole record — anything left out here silently fails to
+      // reach the phone, which is how "fixed" went missing once already.
       local.items[k] = {
-        status:r.status||null, note:r.note||'',
-        photos:(r.photos||[]).slice(), t:r.t||0
+        status:  r.status || null,
+        note:    r.note || '',
+        photos:  (r.photos || []).slice(),
+        fixed:   r.fixed === true,
+        fixedAt: r.fixedAt || 0,
+        fixedBy: r.fixedBy || '',
+        t:       r.t || 0
       };
       changed = true;
     }
