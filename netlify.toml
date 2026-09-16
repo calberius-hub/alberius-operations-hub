@@ -20,6 +20,12 @@
   to = "/sign.html"
   status = 200
 
+# CRA — subcontractor & vendor library
+[[redirects]]
+  from = "/subs"
+  to = "/subs.html"
+  status = 200
+
 [[redirects]]
   from = "/punch-dashboard"
   to = "/punch-dashboard.html"
