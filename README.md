@@ -61,15 +61,34 @@ data URI).
 
 ### Item states
 
-An item is one of: unanswered, **passed**, **failed** (open), or
-**failed-then-fixed**. Marking something fixed never erases the failure — a
-punch list is a record of what went wrong as much as a list of what is left
-— it just stops counting as open work and records `fixedBy` / `fixedAt`.
+An item is unanswered, **passed**, or **failed**. A failure then closes out in
+two steps, because "the sub says it's done" and "I've laid eyes on it" are
+different facts:
 
-Consequently `fail` means **open failures only** everywhere in this codebase;
-fixed ones are counted separately. Clearing or flipping a failure retires its
-fixed state with it. Either side can close an item out: the managers on the
-phone, or the office from the dashboard.
+    open  --[mark fixed]-->  toVerify  --[verify]-->  verified
+      ^                          |                        |
+      +------[reopen]------------+------------------------+
+
+So a failed item is always in exactly one bucket — `fail` (nobody has fixed
+it), `toVerify`, or `verified` — and those three plus `pass` sum to `done`.
+`fail` therefore means **open failures only** everywhere in this codebase.
+
+Marking something fixed never erases the failure: a punch list is a record of
+what went wrong as much as a list of what is left. Both signers and both
+timestamps are kept, and the report says plainly when the same person did both
+steps. Reopening clears the whole sign-off; clearing or flipping the pass/fail
+answer clears it too.
+
+`verified` is clamped server-side so an item nobody has fixed can never be
+marked verified. Records written before verification existed read as
+`toVerify` — never as verified — so nothing claims a sign-off that never
+happened.
+
+Either side can act: the managers on the phone, or the office from the
+dashboard. By default anyone can do either step; set
+`PUNCH_CONFIG.verifyRequiresAdmin` in `punch-data.js` to require a hub admin
+for the verify step (a real control, but every sign-off then waits on an
+admin).
 
 ### How two managers in one unit stay out of each other's way
 
