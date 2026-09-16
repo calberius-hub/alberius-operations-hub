@@ -14,6 +14,12 @@
   to = "/punchlist.html"
   status = 200
 
+# CRA — Bid My Job sign maker
+[[redirects]]
+  from = "/sign"
+  to = "/sign.html"
+  status = 200
+
 [[redirects]]
   from = "/punch-dashboard"
   to = "/punch-dashboard.html"
