@@ -9,6 +9,20 @@ export const MAX_NOTE_CHARS      = 2000;
 export const MAX_PHOTOS_PER_ITEM = 12;
 export const MAX_ITEMS           = 400;     // the printed list has 97
 
+/* How many checks a finished walkthrough contains. This MUST match what
+   punch-data.js adds up to — test/total-items.test.mjs fails the build's
+   sanity check if the two ever drift. It lives here because the server has
+   to know when a unit is complete, and punch-data.js is a browser file. */
+export const TOTAL_ITEMS = 97;
+
+/* A walkthrough is complete once every check has an answer. Failures may
+   still be open — that is the punch list, and it is exactly what makes this
+   worth telling the office about. */
+export function isComplete(rec) {
+  const s = summarize(rec);
+  return s.done >= TOTAL_ITEMS;
+}
+
 /* Unit numbers and photo ids become blob keys, so keep them tame. */
 export function unitId(raw) {
   return String(raw == null ? "" : raw).trim().replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32);

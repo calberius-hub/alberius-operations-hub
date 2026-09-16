@@ -745,10 +745,20 @@ function isAdmin(){
   }catch(e){ return false; }
 }
 
+/* The completion email links straight to a unit: ?unit=18129 */
+function requestedUnit(){
+  try{ return new URLSearchParams(location.search).get('unit') || ''; }
+  catch(e){ return ''; }
+}
+
 if(!isAdmin()){
   setView('gate');
 } else {
-  refresh();
+  (async function(){
+    await refresh();
+    const want = requestedUnit();
+    if(want) await openUnit(want);
+  })();
   setInterval(function(){ if(!document.hidden) refresh(); }, 60000);
 }
 </script>
