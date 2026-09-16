@@ -55,13 +55,18 @@ export function mergeUnit(stored, incoming) {
         photos:  Array.isArray(a.photos)
                    ? a.photos.map(photoId).filter(Boolean).slice(0, MAX_PHOTOS_PER_ITEM)
                    : [],
-        // A failed item that has since been put right. The failure stays on
-        // the record — that is the point of a punch list — it just stops
-        // counting as open work.
-        fixed:   a.fixed === true,
-        fixedAt: Number(a.fixedAt) || 0,
-        fixedBy: clean(a.fixedBy, 60),
-        t:       at || Date.now(),
+        // A failure closes out in two stages: `fixed` is "the work was done",
+        // `verified` is "someone laid eyes on it". The failure itself is never
+        // erased — that is the point of a punch list — it just stops counting
+        // as open work. verified without fixed is meaningless, so it is
+        // clamped: you cannot verify something nobody has fixed.
+        fixed:      a.fixed === true,
+        fixedAt:    Number(a.fixedAt) || 0,
+        fixedBy:    clean(a.fixedBy, 60),
+        verified:   a.fixed === true && a.verified === true,
+        verifiedAt: a.fixed === true && a.verified === true ? (Number(a.verifiedAt) || 0) : 0,
+        verifiedBy: a.fixed === true && a.verified === true ? clean(a.verifiedBy, 60) : "",
+        t:          at || Date.now(),
       };
     }
   }
@@ -79,19 +84,29 @@ export function mergeUnit(stored, incoming) {
   return base;
 }
 
-/* Counts for the dashboard — computed fresh so the list is never stale. */
+/* Counts for the dashboard — computed fresh so the list is never stale.
+   A failed item sits in exactly one bucket:
+     fail     — nobody has fixed it yet
+     toVerify — fixed, waiting on someone to confirm it
+     verified — confirmed, genuinely closed out                               */
 export function summarize(rec) {
-  let pass = 0, fail = 0, fixed = 0;   // `fail` is OPEN failures only
+  let pass = 0, fail = 0, toVerify = 0, verified = 0;
   const items = rec.items || {};
   for (const k of Object.keys(items)) {
     const it = items[k];
     if (it.status === "pass") pass++;
-    else if (it.status === "fail") { if (it.fixed) fixed++; else fail++; }
+    else if (it.status === "fail") {
+      if (!it.fixed)        fail++;
+      else if (it.verified) verified++;
+      else                  toVerify++;
+    }
   }
   return {
     unit:       rec.unit,
-    pass, fail, fixed,
-    done:       pass + fail + fixed,
+    pass, fail, toVerify, verified,
+    // Kept so an older cached page still reads a sensible "closed out" number
+    fixed:      toVerify + verified,
+    done:       pass + fail + toVerify + verified,
     inspector:  rec.inspector || "",
     inspectors: rec.inspectors || [],
     createdAt:  rec.createdAt || null,

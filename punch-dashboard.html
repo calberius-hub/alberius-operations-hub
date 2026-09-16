@@ -15,6 +15,7 @@
   --text:#1a1f1c; --text-dim:#2f3a33; --text-dimmer:#5e6e63;
   --gold:#8c7342; --sage:#5a8a5e; --sage-dark:#47704b; --coral:#b24a3a; --coral-dark:#933a2d;
   --fixed:#4f8a80; --fixed-dark:#3d6f66;
+  --await:#b8863b; --await-dark:#8c6526;
   --shadow:0 1px 2px rgba(26,31,28,.06), 0 4px 14px rgba(26,31,28,.05);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -75,7 +76,8 @@ a{color:var(--sage-dark)}
 }
 
 /* ── Roll-up tiles ── */
-.rollup{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}
+.rollup{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));
+  gap:12px;margin-top:22px}
 .rollup .stat{
   background:var(--surface);border:1px solid var(--border-soft);
   border-radius:13px;padding:16px 14px;text-align:center;box-shadow:var(--shadow);
@@ -88,7 +90,8 @@ a{color:var(--sage-dark)}
 .rollup .stat.ok b{color:var(--sage-dark)}
 .rollup .stat.bad b{color:var(--coral-dark)}
 .rollup .stat.fix b{color:var(--fixed-dark)}
-@media(max-width:700px){ .rollup{grid-template-columns:repeat(2,1fr)} }
+.rollup .stat.await b{color:var(--await-dark)}
+
 
 /* ── Progress ── */
 .pbar{height:7px;border-radius:999px;background:var(--surface3);overflow:hidden;display:flex}
@@ -96,6 +99,7 @@ a{color:var(--sage-dark)}
 .pbar i.ok{background:var(--sage)}
 .pbar i.bad{background:var(--coral)}
 .pbar i.fix{background:var(--fixed)}
+.pbar i.await{background:var(--await)}
 
 /* ── Unit rows ── */
 .urow{
@@ -127,6 +131,7 @@ a{color:var(--sage-dark)}
 .pill.done{background:#e2eee3;color:var(--sage-dark)}
 .pill.wip{background:var(--surface3);color:var(--text-dimmer)}
 .pill.fix{background:#dfeceb;color:var(--fixed-dark)}
+.pill.await{background:#f5e9d6;color:var(--await-dark)}
 
 /* ── Detail ── */
 .rep-head{padding:22px 20px}
@@ -143,9 +148,20 @@ a{color:var(--sage-dark)}
 .rep-item .ri-t .dot{font-weight:700;flex:0 0 auto;color:var(--coral)}
 .rep-item.na .ri-t .dot{color:var(--text-dimmer)}
 .rep-item.fixed .ri-t .dot{color:var(--fixed)}
+.rep-item.awaiting .ri-t .dot{color:var(--await)}
+.rep-item.awaiting .ri-t>span:last-child{color:var(--text-dim)}
 .rep-item.fixed .ri-t>span:last-child{color:var(--text-dimmer);text-decoration:line-through}
 .rep-fixnote{font-size:12px;font-weight:600;color:var(--fixed-dark);margin:8px 0 0 20px;
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;line-height:1.45}
+.rep-fixnote.awaiting{color:var(--await-dark)}
+.rep-fixnote .stages{display:flex;flex-direction:column;gap:2px}
+.verifybtn{
+  padding:7px 13px;border-radius:9px;border:1.5px solid var(--fixed);
+  background:var(--fixed);color:#fff;font-size:12.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.verifybtn:active{opacity:.85}
+.selfnote{font-size:11.5px;font-weight:500;color:var(--await-dark);flex:1 0 100%}
 .fixbtn{
   padding:7px 13px;border-radius:9px;border:1.5px solid var(--fixed);
   background:var(--surface);color:var(--fixed-dark);font-size:12.5px;font-weight:600;
@@ -264,7 +280,7 @@ const API_KEY = 'rv-punch-2026';
 
 let units      = [];      // summaries from the server
 let detail     = null;    // the unit currently opened
-let itemFilter = 'open';  // detail: open failures | fixed | everything checked
+let itemFilter = 'open';  // detail: open | toVerify | verified | all
 let listFilter = 'all';   // all | open | clear
 let view       = 'list';
 const photoCache = {};
@@ -301,11 +317,12 @@ function ago(ts){
   const d = Math.round(h/24);
   return d + (d === 1 ? ' day ago' : ' days ago');
 }
-function progressBar(pass, fail, total, fixed){
-  const pct = function(n){ return total ? (n/total*100).toFixed(2) : '0'; };
-  return '<div class="pbar"><i class="ok" style="width:'+pct(pass)+'%"></i>'
-       + '<i class="fix" style="width:'+pct(fixed||0)+'%"></i>'
-       + '<i class="bad" style="width:'+pct(fail)+'%"></i></div>';
+function progressBar(u){
+  const pct = function(n){ return ((n||0)/TOTAL_ITEMS*100).toFixed(2); };
+  return '<div class="pbar"><i class="ok" style="width:'+pct(u.pass)+'%"></i>'
+       + '<i class="fix" style="width:'+pct(u.verified)+'%"></i>'
+       + '<i class="await" style="width:'+pct(u.toVerify)+'%"></i>'
+       + '<i class="bad" style="width:'+pct(u.fail)+'%"></i></div>';
 }
 function setNote(msg, isErr){
   const el = document.getElementById('syncNote');
@@ -342,34 +359,41 @@ async function refresh(){
 }
 
 function renderList(){
-  let openFails = 0, fixedCount = 0, doneUnits = 0;
+  let openFails = 0, toVerify = 0, verified = 0, doneUnits = 0;
   units.forEach(function(u){
-    openFails  += u.fail;
-    fixedCount += (u.fixed || 0);
+    openFails += u.fail;
+    toVerify  += (u.toVerify || 0);
+    verified  += (u.verified || 0);
     if(u.done >= TOTAL_ITEMS) doneUnits++;
   });
 
   document.getElementById('rollup').innerHTML =
       '<div class="stat"><b>'+units.length+'</b><span>Units</span></div>'
-    + '<div class="stat bad"><b>'+openFails+'</b><span>Open punch items</span></div>'
-    + '<div class="stat fix"><b>'+fixedCount+'</b><span>Fixed</span></div>'
+    + '<div class="stat bad"><b>'+openFails+'</b><span>To fix</span></div>'
+    + '<div class="stat await"><b>'+toVerify+'</b><span>To verify</span></div>'
+    + '<div class="stat fix"><b>'+verified+'</b><span>Verified</span></div>'
     + '<div class="stat ok"><b>'+doneUnits+'</b><span>Fully walked</span></div>';
 
-  const counts = {
-    all:   units.length,
-    open:  units.filter(function(u){ return u.fail > 0; }).length,
-    clear: units.filter(function(u){ return u.fail === 0 && u.done >= TOTAL_ITEMS; }).length
+  const isClear = function(u){
+    return u.fail === 0 && (u.toVerify || 0) === 0 && u.done >= TOTAL_ITEMS;
   };
-  // "All clear" covers both never-failed and everything-since-fixed
+  const counts = {
+    all:    units.length,
+    open:   units.filter(function(u){ return u.fail > 0; }).length,
+    verify: units.filter(function(u){ return (u.toVerify || 0) > 0; }).length,
+    clear:  units.filter(isClear).length
+  };
   document.getElementById('filters').innerHTML =
-    [['all','All units'],['open','Needs work'],['clear','All clear']].map(function(f){
+    [['all','All units'],['open','Needs work'],['verify','To verify'],
+     ['clear','All clear']].map(function(f){
       return '<button class="chip'+(listFilter===f[0]?' on':'')+'" onclick="setFilter(\''+f[0]+'\')">'
            + f[1]+' · '+counts[f[0]]+'</button>';
     }).join('');
 
   const shown = units.filter(function(u){
-    if(listFilter === 'open')  return u.fail > 0;
-    if(listFilter === 'clear') return u.fail === 0 && u.done >= TOTAL_ITEMS;
+    if(listFilter === 'open')   return u.fail > 0;
+    if(listFilter === 'verify') return (u.toVerify || 0) > 0;
+    if(listFilter === 'clear')  return isClear(u);
     return true;
   });
 
@@ -386,17 +410,17 @@ function renderList(){
     const left = TOTAL_ITEMS - u.done;
     const complete = left === 0;
     let pill;
-    if(u.fail)                    pill = '<span class="pill bad">'+u.fail+' to fix</span>';
-    else if(complete && u.fixed)  pill = '<span class="pill fix">All '+u.fixed+' fixed</span>';
-    else if(complete)             pill = '<span class="pill done">All clear</span>';
-    else if(u.fixed)              pill = '<span class="pill fix">'+left+' left · '+u.fixed+' fixed</span>';
-    else                          pill = '<span class="pill wip">'+left+' left</span>';
+    if(u.fail)                        pill = '<span class="pill bad">'+u.fail+' to fix</span>';
+    else if(u.toVerify)               pill = '<span class="pill await">'+u.toVerify+' to verify</span>';
+    else if(complete && u.verified)   pill = '<span class="pill fix">All '+u.verified+' verified</span>';
+    else if(complete)                 pill = '<span class="pill done">All clear</span>';
+    else                              pill = '<span class="pill wip">'+left+' left</span>';
     const who = (u.inspectors && u.inspectors.length) ? u.inspectors.join(', ') : '—';
     return '<button class="urow" onclick="openUnit(\''+esc(u.unit)+'\')">'
       + '<span class="unum">Unit '+esc(u.unit)+'</span>'
       + '<span class="ubar">'
       +   '<div class="meta">'+u.done+' of '+TOTAL_ITEMS+' checked · '+esc(ago(u.updatedAt))+'</div>'
-      +   progressBar(u.pass, u.fail, TOTAL_ITEMS, u.fixed)
+      +   progressBar(u)
       + '</span>'
       + '<span class="uwho">'+esc(who)+'</span>'
       + '<span class="ustat">'+pill+'</span>'
@@ -423,15 +447,27 @@ async function openUnit(num){
   }
 }
 
+/* A failed item sits in exactly one bucket */
+function bucket(it){
+  if(!it || it.status !== 'fail') return null;
+  if(!it.fixed)    return 'fail';
+  if(!it.verified) return 'toVerify';
+  return 'verified';
+}
+
 function detailStats(){
-  let pass = 0, fail = 0, fixed = 0;   // `fail` is OPEN failures only
+  let pass = 0, fail = 0, toVerify = 0, verified = 0;
   const items = detail.items || {};
   Object.keys(items).forEach(function(k){
     const it = items[k];
-    if(it.status === 'pass') pass++;
-    else if(it.status === 'fail'){ if(it.fixed) fixed++; else fail++; }
+    if(it.status === 'pass'){ pass++; return; }
+    const b = bucket(it);
+    if(b === 'fail') fail++;
+    else if(b === 'toVerify') toVerify++;
+    else if(b === 'verified') verified++;
   });
-  return { pass:pass, fail:fail, fixed:fixed, left:TOTAL_ITEMS - pass - fail - fixed };
+  return { pass:pass, fail:fail, toVerify:toVerify, verified:verified,
+           left:TOTAL_ITEMS - pass - fail - toVerify - verified };
 }
 
 function renderDetail(){
@@ -446,14 +482,16 @@ function renderDetail(){
     +   ' ('+esc(fmtDate(detail.updatedAt))+')</div>'
     + '<div class="rl" style="margin-top:10px">'
     +   '<b style="color:var(--sage-dark)">'+st.pass+' passed</b> · '
-    +   '<b style="color:var(--coral-dark)">'+st.fail+' still to fix</b> · '
-    +   '<b style="color:var(--fixed-dark)">'+st.fixed+' fixed</b> · '
+    +   '<b style="color:var(--coral-dark)">'+st.fail+' to fix</b> · '
+    +   '<b style="color:var(--await-dark)">'+st.toVerify+' to verify</b> · '
+    +   '<b style="color:var(--fixed-dark)">'+st.verified+' verified</b> · '
     +   st.left+' not checked</div>';
 
   document.getElementById('detailFilters').innerHTML =
-      '<button class="chip'+(itemFilter==='open' ?' on':'')+'" onclick="setItemFilter(\'open\')">Still to fix · '+st.fail+'</button>'
-    + '<button class="chip'+(itemFilter==='fixed'?' on':'')+'" onclick="setItemFilter(\'fixed\')">Fixed · '+st.fixed+'</button>'
-    + '<button class="chip'+(itemFilter==='all'  ?' on':'')+'" onclick="setItemFilter(\'all\')">Everything checked</button>';
+      '<button class="chip'+(itemFilter==='open'    ?' on':'')+'" onclick="setItemFilter(\'open\')">To fix · '+st.fail+'</button>'
+    + '<button class="chip'+(itemFilter==='toVerify'?' on':'')+'" onclick="setItemFilter(\'toVerify\')">To verify · '+st.toVerify+'</button>'
+    + '<button class="chip'+(itemFilter==='verified'?' on':'')+'" onclick="setItemFilter(\'verified\')">Verified · '+st.verified+'</button>'
+    + '<button class="chip'+(itemFilter==='all'     ?' on':'')+'" onclick="setItemFilter(\'all\')">Everything checked</button>';
 
   const items = detail.items || {};
   const blocks = [];
@@ -466,31 +504,46 @@ function renderDetail(){
         const rec = items[key];
         if(!rec || !rec.status) return;
 
-        const failed  = rec.status === 'fail';
-        const isFixed = failed && !!rec.fixed;
-        const isOpen  = failed && !isFixed;
-        if(itemFilter === 'open'  && !isOpen)  return;
-        if(itemFilter === 'fixed' && !isFixed) return;
+        const b = bucket(rec);
+        if(itemFilter !== 'all' && b !== itemFilter) return;
 
         const photos = (rec.photos || []).map(function(pid){
           return '<img data-pid="'+esc(pid)+'" alt="Punch photo" onclick="zoom(this)" />';
         }).join('');
 
-        // Failures can be closed out (or reopened) right from here
+        const fixedStage = '<span>✓ Fixed'
+          + (rec.fixedBy ? ' by '+esc(rec.fixedBy) : '')
+          + (rec.fixedAt ? ' · '+esc(fmtDate(rec.fixedAt)) : '')+'</span>';
+
+        // A failure moves open → fixed → verified, and can go back either way
         let action = '';
-        if(isOpen){
+        if(b === 'fail'){
           action = '<button class="fixbtn" onclick="markFixed(\''+esc(key)+'\', true)">'
                  + '<span>🔧</span> Mark fixed</button>';
-        } else if(isFixed){
-          action = '<div class="rep-fixnote"><span>✓ Fixed'
-                 + (rec.fixedBy ? ' by '+esc(rec.fixedBy) : '')
-                 + (rec.fixedAt ? ' · '+esc(fmtDate(rec.fixedAt)) : '')+'</span>'
+        } else if(b === 'toVerify'){
+          action = '<div class="rep-fixnote awaiting">'
+                 + '<span class="stages">'+fixedStage+'<span>Waiting on verification</span></span>'
+                 + '<button class="verifybtn" onclick="markVerified(\''+esc(key)+'\', true)">'
+                 +   '<span>✓✓</span> Verify</button>'
                  + '<button class="reopen" onclick="markFixed(\''+esc(key)+'\', false)">Reopen</button>'
+                 + '</div>';
+        } else if(b === 'verified'){
+          const same = rec.verifiedBy && rec.verifiedBy === rec.fixedBy;
+          action = '<div class="rep-fixnote">'
+                 + '<span class="stages">'+fixedStage
+                 +   '<span>✓✓ Verified'
+                 +     (rec.verifiedBy ? ' by '+esc(rec.verifiedBy) : '')
+                 +     (rec.verifiedAt ? ' · '+esc(fmtDate(rec.verifiedAt)) : '')+'</span></span>'
+                 + '<button class="reopen" onclick="markVerified(\''+esc(key)+'\', false)">Undo verify</button>'
+                 + '<button class="reopen" onclick="markFixed(\''+esc(key)+'\', false)">Reopen</button>'
+                 + (same ? '<span class="selfnote">Fixed and verified by the same person.</span>' : '')
                  + '</div>';
         }
 
-        rows.push('<div class="rep-item'+(isFixed?' fixed':failed?'':' na')+'">'
-          + '<div class="ri-t"><span class="dot">'+(isOpen?'✕':'✓')+'</span>'
+        const cls = b === 'verified' ? ' fixed' : b === 'toVerify' ? ' awaiting' : b ? '' : ' na';
+        const dot = b === 'fail' ? '✕' : b === 'toVerify' ? '✓' : b === 'verified' ? '✓✓' : '✓';
+        rows.push('<div class="rep-item'+cls+'">'
+          + '<div class="ri-t"><span class="dot">'+dot+'</span>'
           +   '<span>'+esc(text)+'</span></div>'
           + (rec.note ? '<div class="ri-n">'+esc(rec.note)+'</div>' : '')
           + action
@@ -505,14 +558,21 @@ function renderDetail(){
   });
 
   let emptyMsg, emptyIcon = '✅';
-  if(itemFilter === 'fixed'){
+  if(itemFilter === 'toVerify'){
+    emptyIcon = '🔍';
+    emptyMsg  = 'Nothing is waiting on verification in this unit.';
+  } else if(itemFilter === 'verified'){
     emptyIcon = '🔧';
-    emptyMsg  = 'Nothing has been marked fixed in this unit yet.';
+    emptyMsg  = 'Nothing has been verified in this unit yet.';
   } else if(itemFilter === 'all'){
     emptyIcon = '📋';
     emptyMsg  = 'Nothing has been checked in this unit yet.';
-  } else if(st.fixed){
-    emptyMsg  = 'Nothing left to fix — all ' + st.fixed + ' punch items are closed out.'
+  } else if(st.toVerify){
+    emptyIcon = '🔍';
+    emptyMsg  = 'Nothing left to fix — ' + st.toVerify + ' waiting on verification.'
+              + (st.left ? ' ' + st.left + ' still unchecked.' : '');
+  } else if(st.verified){
+    emptyMsg  = 'Nothing open — all ' + st.verified + ' punch items are verified.'
               + (st.left ? ' ' + st.left + ' still unchecked.' : '');
   } else {
     emptyMsg  = 'No failed items'
@@ -529,30 +589,19 @@ function renderDetail(){
 
 function setItemFilter(f){ itemFilter = f; renderDetail(); }
 
-/* Close an item out from the office. This goes through the same per-item
-   merge as the phones, so it converges with whatever the managers are doing
-   rather than stamping on it. */
-async function markFixed(key, isFixed){
-  const rec = detail.items && detail.items[key];
-  if(!rec || rec.status !== 'fail') return;
-
-  let by = '';
+function signerName(){
   try{
     const sess = JSON.parse(sessionStorage.getItem('rv_session') || '{}');
-    by = sess.username || sess.name || '';
-  }catch(e){}
+    return sess.username || sess.name || '';
+  }catch(e){ return ''; }
+}
 
-  const patch = {
-    status: 'fail',
-    note:   rec.note || '',
-    photos: rec.photos || [],
-    fixed:  !!isFixed,
-    fixedAt: isFixed ? Date.now() : 0,
-    fixedBy: isFixed ? by : '',
-    t:      Date.now()
-  };
-
-  setNote(isFixed ? 'Marking fixed…' : 'Reopening…');
+/* Push one item's new state. Goes through the same per-item merge as the
+   phones, so it converges with whatever the managers are doing rather than
+   stamping on it. Sends the whole record — leaving a field out would erase
+   it server-side. */
+async function pushItem(key, patch, busyMsg, doneMsg){
+  setNote(busyMsg);
   try{
     const items = {}; items[key] = patch;
     const res = await api('sync', {
@@ -560,12 +609,51 @@ async function markFixed(key, isFixed){
       rec:  { unit: detail.unit, updatedAt: Date.now(), items: items }
     });
     if(res.unit) detail = res.unit;
-    setNote(isFixed ? 'Marked fixed' : 'Reopened');
+    setNote(doneMsg);
     renderDetail();
     refreshListQuietly();
   }catch(e){
     setNote('Could not save that change', true);
   }
+}
+
+async function markFixed(key, isFixed){
+  const rec = detail.items && detail.items[key];
+  if(!rec || rec.status !== 'fail') return;
+
+  await pushItem(key, {
+    status:  'fail',
+    note:    rec.note || '',
+    photos:  rec.photos || [],
+    fixed:   !!isFixed,
+    fixedAt: isFixed ? Date.now() : 0,
+    fixedBy: isFixed ? signerName() : '',
+    // Reopening drops the sign-off with it
+    verified:   false,
+    verifiedAt: 0,
+    verifiedBy: '',
+    t: Date.now()
+  }, isFixed ? 'Marking fixed…' : 'Reopening…',
+     isFixed ? 'Marked fixed — needs verifying' : 'Reopened');
+}
+
+async function markVerified(key, isVerified){
+  const rec = detail.items && detail.items[key];
+  if(!rec || rec.status !== 'fail' || !rec.fixed) return;   // nothing to verify
+
+  await pushItem(key, {
+    status:  'fail',
+    note:    rec.note || '',
+    photos:  rec.photos || [],
+    fixed:   true,
+    fixedAt: rec.fixedAt || 0,
+    fixedBy: rec.fixedBy || '',
+    verified:   !!isVerified,
+    verifiedAt: isVerified ? Date.now() : 0,
+    verifiedBy: isVerified ? signerName() : '',
+    t: Date.now()
+  }, isVerified ? 'Verifying…' : 'Undoing…',
+     isVerified ? 'Verified' : 'Verification undone');
 }
 
 /* Keep the roll-up honest after a change, without leaving the unit view */
@@ -603,8 +691,9 @@ function copyDetail(){
   if(who) lines.push('Walked by: ' + who);
   lines.push(fmtDate(detail.updatedAt));
   lines.push('');
-  lines.push(st.pass + ' passed · ' + st.fail + ' still to fix · '
-           + st.fixed + ' fixed · ' + st.left + ' not checked');
+  lines.push(st.pass + ' passed · ' + st.fail + ' to fix · '
+           + st.toVerify + ' to verify · ' + st.verified + ' verified · '
+           + st.left + ' not checked');
 
   let any = false;
   ROOMS.forEach(function(room, ri){
@@ -612,7 +701,7 @@ function copyDetail(){
     room.cats.forEach(function(cat, ci){
       cat.items.forEach(function(text, ii){
         const rec = items[itemKey(ri, ci, ii)];
-        if(!rec || rec.status !== 'fail' || rec.fixed) return;   // open items only
+        if(bucket(rec) !== 'fail') return;   // open items only
         let line = '  • ' + text;
         if(rec.note) line += '\n      Note: ' + rec.note;
         if((rec.photos||[]).length){
@@ -631,8 +720,12 @@ function copyDetail(){
   });
   if(!any){
     lines.push('');
-    lines.push(st.fixed ? 'Nothing open — all ' + st.fixed + ' punch items are fixed.'
-                        : 'No failed items.');
+    if(st.toVerify)      lines.push('Nothing left to fix — ' + st.toVerify + ' waiting on verification.');
+    else if(st.verified) lines.push('Nothing open — all ' + st.verified + ' punch items are verified.');
+    else                 lines.push('No failed items.');
+  } else if(st.toVerify){
+    lines.push('');
+    lines.push('(' + st.toVerify + ' more already fixed, waiting on verification.)');
   }
 
   const text = lines.join('\n');

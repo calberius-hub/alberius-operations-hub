@@ -10,6 +10,17 @@
    so do NOT reorder or delete items in an existing room without
    migrating saved data. Appending to the END of a category is safe.
    ═══════════════════════════════════════════════════════════ */
+/* ── Who may sign off on a fix ──
+   A punch item closes out in two stages: someone marks it fixed, then
+   someone verifies it. By default anyone on the job can do either — both
+   names and times are recorded, and the report shows plainly when the same
+   person did both.
+
+   Set this to true to allow only hub admins to verify. It is a real control
+   (it keys off the signed-in hub role) but it also makes every sign-off wait
+   on an admin, so it is off unless that trade is wanted. */
+const PUNCH_CONFIG = { verifyRequiresAdmin: false };
+
 const ROOMS = [
   { id:'guest-bed', name:'Guest Bedroom', emoji:'🛏️', cats:[
     { name:'Electrical & Lighting', items:[
